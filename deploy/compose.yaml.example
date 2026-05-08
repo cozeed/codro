@@ -1,0 +1,112 @@
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: ./apps/web/Dockerfile
+      args:
+        PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL}
+        PUBLIC_SERVER_API_PATH: ${PUBLIC_SERVER_API_PATH}
+        PUBLIC_WEB_URL: ${PUBLIC_WEB_URL}
+        PUBLIC_ASSISTANT_BASE_URL: ${PUBLIC_ASSISTANT_BASE_URL}
+    ports:
+      - 8085:80
+    env_file:
+      - .env
+    depends_on:
+      - server
+    restart: always
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  server:
+    build:
+      context: ..
+      dockerfile: ./apps/server/Dockerfile
+    ports:
+      - 3035:3000
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - uploads:/app/uploads
+    restart: always
+
+    environment:
+      - SERVER_AUTH_SECRET=${SERVER_AUTH_SECRET}
+      - SERVER_POSTGRES_URL=${SERVER_POSTGRES_URL}
+      - SERVER_HOST=${SERVER_HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - PUBLIC_WEB_URL=${PUBLIC_WEB_URL}
+      - PUBLIC_SERVER_URL=${PUBLIC_SERVER_URL}
+      - PUBLIC_SERVER_API_PATH=${PUBLIC_SERVER_API_PATH}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - APP_ENCRYPTION_KEY=${APP_ENCRYPTION_KEY}
+      - DRIVE_DISK=${DRIVE_DISK}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_ENDPOINT=${R2_ENDPOINT}
+      - R2_BUCKET=${R2_BUCKET}
+      - R2_SUBDOMAIN=${R2_SUBDOMAIN}
+      - AWS_S3_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID}
+      - AWS_S3_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}
+      - AWS_S3_REGION=${AWS_S3_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_S3_ENDPOINT=${AWS_S3_ENDPOINT}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:3000/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  db:
+    image: postgres:18
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    restart: always
+
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  drizzle:
+    image: codro-drizzle
+    restart: "no"
+    command: /bin/sh
+    build:
+      context: ..
+      dockerfile: ./packages/db/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - SERVER_POSTGRES_URL=${SERVER_POSTGRES_URL}
+      - TURBO_UI=true
+    profiles:
+      - drizzle
+
+volumes:
+  postgres_data:
+  uploads:

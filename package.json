@@ -1,0 +1,37 @@
+{
+  "name": "codro",
+  "private": true,
+  "scripts": {
+    "clean": "turbo run clean",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "start": "turbo run start",
+    "web": "pnpm --filter @workspace/web dev",
+    "docs": "pnpm --filter @workspace/docs dev",
+    "db:generate": "pnpm --filter @workspace/db db:generate",
+    "db:push": "pnpm --filter @workspace/db db:push",
+    "db:studio": "pnpm --filter @workspace/db db:studio",
+    "pglite:generate": "pnpm --filter @workspace/pglite generate",
+    "env:copy-example": "turbo run env:copy-example",
+    "env:remove": "turbo run env:remove",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "turbo": "^2.9.9",
+    "typescript": "6.0.3"
+  },
+  "packageManager": "pnpm@11.0.8",
+  "pnpm": {
+    "overrides": {
+      "tldraw": "3.15.5"
+    }
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

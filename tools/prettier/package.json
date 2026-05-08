@@ -1,0 +1,21 @@
+{
+  "name": "@workspace/prettier-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "typecheck": "tsc --noEmit"
+  },
+  "prettier": "@workspace/prettier-config",
+  "dependencies": {
+    "prettier": "^3.8.3"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "6.0.3"
+  }
+}

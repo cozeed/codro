@@ -1,0 +1,318 @@
+name: CI / Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+permissions:
+  contents: write
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter web typecheck
+
+      - run: pnpm --filter web build
+        env:
+          PUBLIC_SERVER_URL: ${{ vars.PUBLIC_SERVER_URL }}
+          PUBLIC_SERVER_API_PATH: ${{ vars.PUBLIC_SERVER_API_PATH }}
+          PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
+          PUBLIC_ASSISTANT_BASE_URL: ${{ vars.PUBLIC_ASSISTANT_BASE_URL }}
+
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter server typecheck
+
+      - run: pnpm --filter server build
+
+  tauri:
+    needs: [web, server]
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            arch: x86_64
+            deps: libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
+
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            arch: arm64
+
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            arch: x86_64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.deps }}
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/web/src-tauri
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter web build
+        env:
+          PUBLIC_SERVER_URL: ${{ vars.PUBLIC_SERVER_URL }}
+          PUBLIC_SERVER_API_PATH: ${{ vars.PUBLIC_SERVER_API_PATH }}
+          PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
+          PUBLIC_ASSISTANT_BASE_URL: ${{ vars.PUBLIC_ASSISTANT_BASE_URL }}
+
+      - name: Build Tauri App
+        timeout-minutes: 60
+        run: pnpm --filter web tauri build
+        env:
+          PUBLIC_SERVER_URL: ${{ vars.PUBLIC_SERVER_URL }}
+          PUBLIC_SERVER_API_PATH: ${{ vars.PUBLIC_SERVER_API_PATH }}
+          PUBLIC_WEB_URL: ${{ vars.PUBLIC_WEB_URL }}
+          PUBLIC_ASSISTANT_BASE_URL: ${{ vars.PUBLIC_ASSISTANT_BASE_URL }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Prepare release assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          VERSION="${GITHUB_REF_NAME#v}"
+          BUNDLE="apps/web/src-tauri/target/release/bundle"
+
+          case "${{ runner.os }}" in
+            macOS)
+              # Updater artifact: .app.tar.gz + .sig
+              TAR_GZ=$(find "$BUNDLE/macos" -maxdepth 1 -name "*.tar.gz" -type f | head -1)
+              if [ -n "$TAR_GZ" ]; then
+                cp "$TAR_GZ" "release-assets/codro-${VERSION}-macOS.tar.gz"
+                [ -f "$TAR_GZ.sig" ] && cp "$TAR_GZ.sig" "release-assets/codro-${VERSION}-macOS.tar.gz.sig"
+              fi
+              # DMG for manual install
+              DMG=$(find "$BUNDLE/dmg" -maxdepth 1 -name "*.dmg" -type f | head -1)
+              if [ -n "$DMG" ]; then
+                cp "$DMG" "release-assets/codro-${VERSION}-macOS.dmg"
+              fi
+              ;;
+            Linux)
+              # Updater artifact: AppImage + .sig
+              APPIMAGE=$(find "$BUNDLE/appimage" -maxdepth 1 -name "*.AppImage" -type f | head -1)
+              if [ -n "$APPIMAGE" ]; then
+                cp "$APPIMAGE" "release-assets/codro-${VERSION}-Linux-x86_64.AppImage"
+                [ -f "$APPIMAGE.sig" ] && cp "$APPIMAGE.sig" "release-assets/codro-${VERSION}-Linux-x86_64.AppImage.sig"
+              fi
+              # deb for manual install
+              DEB=$(find "$BUNDLE/deb" -maxdepth 1 -name "*.deb" -type f | head -1)
+              if [ -n "$DEB" ]; then
+                cp "$DEB" "release-assets/codro-${VERSION}-Linux-x86_64.deb"
+              fi
+              ;;
+            Windows)
+              # Updater artifact: NSIS exe + .sig
+              EXE=$(find "$BUNDLE/nsis" -maxdepth 1 -name "*.exe" -type f | head -1)
+              if [ -n "$EXE" ]; then
+                cp "$EXE" "release-assets/codro-${VERSION}-Windows-x86_64.exe"
+                [ -f "$EXE.sig" ] && cp "$EXE.sig" "release-assets/codro-${VERSION}-Windows-x86_64.exe.sig"
+              fi
+              # MSI for manual install
+              MSI=$(find "$BUNDLE/msi" -maxdepth 1 -name "*.msi" -type f | head -1)
+              if [ -n "$MSI" ]; then
+                cp "$MSI" "release-assets/codro-${VERSION}-Windows-x86_64.msi"
+              fi
+              ;;
+          esac
+
+          echo "Prepared assets:"
+          ls -la release-assets/
+
+      - name: Upload release assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ matrix.os }}-${{ matrix.arch }}
+          path: release-assets/*
+          if-no-files-found: error
+
+  publish-release:
+    needs: tauri
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-assets-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate release notes from commits
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | grep '^v' | grep -v "${{ github.ref_name }}" | head -1 || true)
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          {
+            echo "## Commits"
+            echo
+            git log "$PREV_TAG..${{ github.ref_name }}" --pretty="format:* %s (%h)" --reverse
+          } > /tmp/release-notes.md
+          cat /tmp/release-notes.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Codro ${{ github.ref_name }}
+          body_path: /tmp/release-notes.md
+          files: release-assets/codro-*
+
+  assemble-latest-json:
+    needs: publish-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Clean up stale release assets (non-codro-* files from previous CI runs)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ASSETS=$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name')
+          for asset in $ASSETS; do
+            case "$asset" in
+              codro-* | latest.json) ;;
+              *) echo "Removing stale asset: $asset"; gh release delete-asset "$GITHUB_REF_NAME" "$asset" --repo "$GITHUB_REPOSITORY" --yes || true ;;
+            esac
+          done
+
+      - name: Download published release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dl
+          gh release download "$GITHUB_REF_NAME" --dir dl --repo "$GITHUB_REPOSITORY" --pattern 'codro-*' --pattern 'latest.json'
+
+      - name: Generate latest.json
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          BASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME"
+
+          mac_url=""; mac_sig=""
+          win_url=""; win_sig=""
+          linux_url=""; linux_sig=""
+
+          shopt -s nullglob
+          for sig in dl/*.sig; do
+            base="${sig%.sig}"
+            fname=$(basename "$base")
+            sig_content=$(cat "$sig")
+            url="$BASE_URL/$fname"
+            case "$fname" in
+              *-macOS.tar.gz)
+                mac_url="$url"; mac_sig="$sig_content" ;;
+              *-Linux-x86_64.AppImage)
+                linux_url="$url"; linux_sig="$sig_content" ;;
+              *-Windows-x86_64.exe)
+                win_url="$url"; win_sig="$sig_content" ;;
+            esac
+          done
+
+          {
+            echo '{'
+            echo "  \"version\": \"$VERSION\","
+            echo "  \"notes\": \"See the full changelog at https://github.com/cozeed/codro/releases/tag/$GITHUB_REF_NAME\","
+            echo "  \"pub_date\": \"$PUB_DATE\","
+            echo '  "platforms": {'
+            first=1
+            if [ -n "$mac_url" ] && [ -n "$mac_sig" ]; then
+              echo "    \"darwin-aarch64\": {\"signature\": \"$mac_sig\", \"url\": \"$mac_url\"}"
+              first=0
+            fi
+            if [ -n "$win_url" ] && [ -n "$win_sig" ]; then
+              [ $first -eq 0 ] && echo ','
+              echo "    \"windows-x86_64\": {\"signature\": \"$win_sig\", \"url\": \"$win_url\"}"
+              first=0
+            fi
+            if [ -n "$linux_url" ] && [ -n "$linux_sig" ]; then
+              [ $first -eq 0 ] && echo ','
+              echo "    \"linux-x86_64\": {\"signature\": \"$linux_sig\", \"url\": \"$linux_url\"}"
+              first=0
+            fi
+            echo '  }'
+            echo '}'
+          } > latest.json
+
+          cat latest.json
+
+      - name: Upload latest.json to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" latest.json --clobber --repo "$GITHUB_REPOSITORY"
+
+      - name: Remove .sig files from release (signatures are in latest.json)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ASSETS=$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name')
+          for asset in $ASSETS; do
+            case "$asset" in
+              *.sig) echo "Removing: $asset"; gh release delete-asset "$GITHUB_REF_NAME" "$asset" --repo "$GITHUB_REPOSITORY" --yes ;;
+            esac
+          done

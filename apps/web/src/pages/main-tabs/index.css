@@ -1,0 +1,92 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+.flexlayout__layout {
+  position: relative;
+  height: 100%;
+
+  --splitter-size: 4px;
+  --font-size: var(--text-sm) !important;
+  --font-family: var(--font-sans) !important;
+  .tab_content {
+    height: 100%;
+  }
+
+  .flexlayout__tab_button {
+    @apply border-b-2 border-transparent text-sm;
+
+    .flexlayout__tab_button_content {
+      @apply inline-block truncate;
+      max-width: 8rem;
+    }
+
+    &.flexlayout__tab_button--selected {
+      @apply rounded-t-sm border-b-2;
+    }
+
+    &:hover {
+      @apply rounded-t-sm;
+    }
+  }
+
+  .flexlayout__tabset_tabbar_outer_top {
+    @apply pl-7;
+  }
+
+  /* Light theme */
+  & {
+    .tab_content {
+      @apply bg-transparent;
+    }
+
+    .flexlayout__tabset-selected {
+      @apply bg-white;
+    }
+
+    .flexlayout__tab_button {
+      @apply text-neutral-500;
+
+      &.flexlayout__tab_button--selected {
+        @apply border-b-slate-400 bg-slate-100 text-neutral-800;
+      }
+
+      &:hover {
+        @apply bg-gray-100 text-gray-600;
+      }
+    }
+
+    .flexlayout__tabset_tabbar_outer_top {
+      @apply border-slate-100;
+    }
+  }
+
+  /* Dark theme */
+  .dark & {
+    .tab_content {
+      @apply bg-transparent;
+    }
+
+    .flexlayout__tabset-selected {
+      @apply bg-[#1a1a1a];
+      background-image: none !important;
+    }
+
+    .flexlayout__tab_button {
+      @apply text-neutral-400;
+
+      &.flexlayout__tab_button--selected {
+        @apply border-b-slate-500 bg-slate-700 text-neutral-50;
+      }
+
+      &:hover {
+        @apply bg-gray-700 text-gray-300;
+      }
+    }
+
+    .flexlayout__tabset_tabbar_outer_top {
+      @apply border-[#343438];
+    }
+  }
+}

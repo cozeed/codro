@@ -1,0 +1,13 @@
+packages:
+  - apps/*
+  - packages/*
+  - tools/*
+allowBuilds:
+  core-js: true
+  esbuild: true
+ignoredBuiltDependencies:
+  - "@prisma/engines"
+  - "@swc/core"
+  - "@tailwindcss/oxide"
+  - esbuild
+  - prisma

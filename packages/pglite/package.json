@@ -1,0 +1,59 @@
+{
+  "name": "@workspace/pglite",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./schema": {
+      "types": "./dist/src/schema.d.ts",
+      "default": "./src/schema.ts"
+    },
+    "./worker": {
+      "types": "./dist/src/worker.d.ts",
+      "default": "./src/worker.ts"
+    },
+    "./provider": {
+      "types": "./dist/src/provider.d.ts",
+      "default": "./src/provider.tsx"
+    },
+    "./hooks": {
+      "types": "./dist/src/hooks.d.ts",
+      "default": "./src/hooks.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "lint": "eslint",
+    "type-check": "tsc --noEmit",
+    "generate": "drizzle-kit generate"
+  },
+  "prettier": "@workspace/prettier-config",
+  "dependencies": {
+    "@electric-sql/pglite": "^0.4.5",
+    "@electric-sql/pglite-react": "^0.3.5",
+    "@paralleldrive/cuid2": "^3.3.0",
+    "@trpc/client": "^11.17.0",
+    "@workspace/api": "workspace:*",
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "react": "^19.2.6",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/webpack-env": "^1.18.8",
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/prettier-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^10.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.11"
+  }
+}

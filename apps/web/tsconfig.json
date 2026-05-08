@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@workspace/typescript-config/vite.json",
+  "compilerOptions": {
+    // "rootDir": "./src",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@workspace/ui/*": ["../../packages/ui/src/*"],
+      "@workspace/api/*": ["../../packages/api/src/*"],
+      "@workspace/auth/*": ["../../packages/auth/src/*"],
+      "@workspace/db/*": ["../../packages/db/src/*"],
+      "@workspace/pglite/*": ["../../packages/pglite/src/*"],
+      "@workspace/server/*": ["../server/src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "src-tauri", "dist", ".next"]
+}

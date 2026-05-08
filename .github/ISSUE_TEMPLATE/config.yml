@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Project Discussions
+    url: https://github.com/cozeed/codro/discussions
+    about: Please start a discussion or ask questions in Discussions
+  - name: Project Documentation
+    url: https://github.com/cozeed/codro#readme
+    about: Check the project README for more information

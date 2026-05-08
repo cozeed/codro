@@ -1,0 +1,35 @@
+{
+  "name": "@workspace/eslint-config",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    "./base": "./base.js",
+    "./react": "./react.js"
+  },
+  "prettier": "@workspace/prettier-config",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/eslint-config-prettier": "^6.11.3",
+    "@workspace/prettier-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-only-warn": "^1.2.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-turbo": "^2.9.9",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.2"
+  },
+  "dependencies": {
+    "eslint-config-turbo": "^2.9.9"
+  }
+}

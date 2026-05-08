@@ -1,0 +1,42 @@
+/* Global variables */
+:root {
+  --rct-item-height: 26px;
+  --rct-item-margin: 0px;
+  --rct-item-padding: 2px;
+  --rct-radius: 4px;
+  --rct-bar-offset: 4px;
+  --rct-bar-width: 0px;
+  --rct-bar-color: #c45c0c;
+  --rct-focus-outline: #1d7be5;
+  --rct-color-focustree-item-selected-bg: #eaecf0;
+  --rct-color-focustree-item-hover-bg: #f5f6f8;
+  --rct-color-focustree-item-active-bg: #eaecf0;
+  --rct-color-focustree-item-draggingover-bg: #eaecf0;
+
+  --rct-arrow-size: 8px;
+  --rct-arrow-container-size: 12px;
+  --rct-arrow-padding: 4px;
+}
+
+/* Dark mode variables */
+.rct-dark {
+  --rct-bar-color: #1d7be5;
+  --rct-focus-outline: #1d7be5;
+  --rct-color-focustree-item-selected-bg: #04395e;
+  --rct-color-focustree-item-hover-bg: #373737;
+  --rct-color-focustree-item-active-bg: #04395e;
+  --rct-color-focustree-item-draggingover-bg: #04395e;
+}
+
+/* Focus state */
+.rct-tree-item-button:focus {
+  outline: none;
+  /* background-color: var(--rct-color-focustree-item-selected-bg); */
+  box-shadow: inset 0 0 0 0.5px var(--rct-focus-outline);
+}
+
+/* Drag hover state */
+.rct-tree-item-title-container-dragging-over .rct-tree-item-button {
+  background-color: var(--rct-color-focustree-item-selected-bg);
+  box-shadow: inset 0 0 0 0.5px var(--rct-focus-outline);
+}

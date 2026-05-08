@@ -1,0 +1,17 @@
+{
+  "extends": "@workspace/typescript-config/internal-package.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "rootDir": "./src",
+    "paths": {
+      "@workspace/db/*": ["../db/src/*"],
+      "@workspace/api/*": ["../api/src/*"]
+    },
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "WebWorker"],
+    "resolveJsonModule": true
+  },
+  "include": ["src", "migrations-client/**/*.json"],
+  "exclude": ["node_modules"],
+  "references": [{ "path": "../db" }, { "path": "../api" }]
+}
