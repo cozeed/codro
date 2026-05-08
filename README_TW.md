@@ -79,4 +79,4 @@ Codro 許可採用 [AGPL-3.0](LICENSE)，所有權歸 [Cozeed.com](https://cozee
 
 ## Star 歷史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=cozeed/codro&type=Date)](https://star-history.com/#cozeed/codro&Date)
+[![Star History Chart](https://api.star-history.com/chart?repos=cozeed/codro&type=date&legend=top-left)](https://www.star-history.com/?repos=cozeed%2Fcodro&type=date&legend=top-left)

@@ -79,4 +79,4 @@ Codro is licensed under the [AGPL-3.0](LICENSE), and is owned by [Cozeed.com](ht
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=cozeed/codro&type=Date)](https://star-history.com/#cozeed/codro&Date)
+[![Star History Chart](https://api.star-history.com/chart?repos=cozeed/codro&type=date&legend=top-left)](https://www.star-history.com/?repos=cozeed%2Fcodro&type=date&legend=top-left)
