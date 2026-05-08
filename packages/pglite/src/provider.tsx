@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 import { PGliteProvider } from "@electric-sql/pglite-react";
 
 import type { PGliteClient, PGliteDb } from "./index";
@@ -42,13 +42,18 @@ export function DBProvider({ userId, children }: DBProviderProps) {
   const [db, setDb] = useState<PGliteDb | null>(null);
   const [status, setStatus] = useState(DBStatus.Initializing);
   const [error, setError] = useState<Error | null>(null);
+  const cleanupRef = useRef<(() => Promise<void>) | null>(null);
 
   // initialize db on mount
   useEffect(() => {
     let cancelled = false;
     initializePGlite()
-      .then(({ client: c, db: d }) => {
-        if (cancelled) return;
+      .then(({ client: c, db: d, cleanup }) => {
+        if (cancelled) {
+          cleanup();
+          return;
+        }
+        cleanupRef.current = cleanup;
         setClient(c);
         setDb(d);
         setStatus(DBStatus.Initialized);
@@ -61,7 +66,20 @@ export function DBProvider({ userId, children }: DBProviderProps) {
       });
     return () => {
       cancelled = true;
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
     };
+  }, []);
+
+  // cleanup on page unload to release OPFS file handles
+  useEffect(() => {
+    const onUnload = () => {
+      cleanupRef.current?.();
+    };
+    window.addEventListener("beforeunload", onUnload);
+    return () => window.removeEventListener("beforeunload", onUnload);
   }, []);
 
   // set status to pending sync when userId changes

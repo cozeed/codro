@@ -23,8 +23,10 @@ export async function initializePGlite() {
   const useOPFS = window.isSecureContext;
   console.log("✅ use OPFS:", useOPFS);
 
+  let worker: Worker | null = null;
+
   const tryOPFS = async () => {
-    const worker = new Worker(new URL("./worker.js", import.meta.url), {
+    worker = new Worker(new URL("./worker.js", import.meta.url), {
       type: "module",
       name: "pglite-worker",
     });
@@ -72,7 +74,22 @@ export async function initializePGlite() {
   window.client = client;
   window.db = db;
 
-  return { client, db };
+  const cleanup = async () => {
+    // terminate worker first (sync) to immediately release OPFS file handles
+    if (worker) {
+      worker.terminate();
+      worker = null;
+    }
+    try {
+      await client.close();
+    } catch (e) {
+      console.warn("Error closing PGlite client:", e);
+    }
+    delete window.client;
+    delete window.db;
+  };
+
+  return { client, db, cleanup };
 }
 
 export { usePGlite } from "./hooks";
