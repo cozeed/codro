@@ -117,8 +117,13 @@ export const UserDropdown = () => {
         <DropdownMenuTrigger asChild>
           <div className="pointer-events-auto flex items-center justify-center">
             <Tooltip content={t("operation.accountMenu")} delay={0} side="right">
-              {user?.image ? (
-                <CustomAvatar image={user.image} name={user.name ?? ""} size="sm" className="cursor-pointer" />
+              {user ? (
+                <CustomAvatar
+                  image={user.image ?? ""}
+                  name={user.name ?? ""}
+                  size="sm"
+                  className="cursor-pointer bg-blue-400 text-white"
+                />
               ) : (
                 <CircleUserRound className="size-6 text-gray-500 transition-colors duration-200 hover:brightness-75 dark:text-gray-400 dark:hover:brightness-125" />
               )}
@@ -127,9 +132,9 @@ export const UserDropdown = () => {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent className="z-9999 max-w-56" side="right" align="end">
-          {user?.name && user?.email ? (
+          {user?.email ? (
             <DropdownMenuLabel className="p-0 font-normal">
-              <UserInfo name={user.name} email={user.email} image={user.image ?? ""} />
+              <UserInfo name={user.name ?? ""} email={user.email} image={user.image ?? ""} />
             </DropdownMenuLabel>
           ) : (
             <DropdownMenuItem className="cursor-pointer" onClick={onSignIn}>
@@ -149,7 +154,7 @@ export const UserDropdown = () => {
             </DropdownMenuItem>
           ))}
 
-          {user?.name && user?.email ? (
+          {user?.email ? (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer" onClick={onSignOut}>
