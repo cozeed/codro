@@ -1,5 +1,5 @@
 <div align="center">
-  <img align="center" src="./apps/web/public/app-icon.png" width="120" height="120" />
+  <img align="center" src="./apps/web/public/app-icon.png" width="100" height="100" />
 </div>
 
 <h2 align="center"/>Codro</h2>
