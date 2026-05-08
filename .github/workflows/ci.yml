@@ -383,23 +383,24 @@ jobs:
             echo '}'
           } > cdn-latest.json
           cat cdn-latest.json
+          mkdir -p latest-dir && mv cdn-latest.json latest-dir/latest.json
 
       - name: Upload assets to R2
         uses: ryand56/r2-upload-action@v1
         with:
-          accountid: ${{ secrets.CF_ACCOUNT_ID }}
-          accesskeyid: ${{ secrets.R2_ACCESS_KEY_ID }}
-          secretaccesskey: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          bucket: cozeed-storage
-          source: dl
-          destination: releases/v${{ steps.vars.outputs.version }}
+          r2-account-id: ${{ secrets.CF_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: cozeed-storage
+          source-dir: dl
+          destination-dir: releases/v${{ steps.vars.outputs.version }}
 
       - name: Upload latest.json to R2
         uses: ryand56/r2-upload-action@v1
         with:
-          accountid: ${{ secrets.CF_ACCOUNT_ID }}
-          accesskeyid: ${{ secrets.R2_ACCESS_KEY_ID }}
-          secretaccesskey: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          bucket: cozeed-storage
-          source: cdn-latest.json
-          destination: releases/latest.json
+          r2-account-id: ${{ secrets.CF_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: cozeed-storage
+          source-dir: latest-dir
+          destination-dir: releases
