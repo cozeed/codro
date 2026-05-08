@@ -27,6 +27,11 @@
 
 <img src="./apps/web/public/app-screenshot.png" alt="スクリーンショット" />
 
+## オンラインで試す
+
+- ユーザー名：`test@test.com`
+- パスワード：`11111111`
+
 ## Codroは現在Beta段階 ⚠️
 
 現在、Codroはベータ段階にあります。データバックアップがある状態での使用をお勧めします。

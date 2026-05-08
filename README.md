@@ -27,6 +27,11 @@
 
 <img src="./apps/web/public/app-screenshot.png" alt="Screenshot" />
 
+## Try Online
+
+- Username: `test@test.com`
+- Password: `11111111`
+
 ## Codro is in Beta ⚠️
 
 Codro is currently in the beta phase. It is recommended to use it with data backups.

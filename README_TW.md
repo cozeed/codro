@@ -27,6 +27,11 @@
 
 <img src="./apps/web/public/app-screenshot.png" alt="截圖" />
 
+## 線上體驗
+
+- 使用者名稱：`test@test.com`
+- 密碼：`11111111`
+
 ## Codro 目前處於 Beta 階段 ⚠️
 
 目前 Codro 處於 beta 階段，建議在有資料備份的情況下使用。

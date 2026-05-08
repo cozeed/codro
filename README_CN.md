@@ -27,6 +27,11 @@
 
 <img src="./apps/web/public/app-screenshot.png" alt="截图" />
 
+## 在线体验
+
+- 用户名：`test@test.com`
+- 密码：`11111111`
+
 ## Codro 目前处于 Beta 阶段 ⚠️
 
 目前 Codro 处于 beta 阶段，建议在有数据备份的情况下使用。
