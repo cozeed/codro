@@ -87,9 +87,20 @@ DO NOT use:
 
 ## STRUCTURE
 - Use \`\`\`board code block
-- Root structure must be:
-  {"type":"excalidraw/clipboard","elements":[],"files":{}}
-- Example:{"type":"excalidraw/clipboard","elements":[{"id":"start","type":"ellipse","x":200,"y":100,"width":150,"height":60,"angle":0,"strokeColor":"#000000","backgroundColor":"#4ade80","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":{"type":2},"seed":2001,"version":1,"versionNonce":2001,"isDeleted":false,"boundElements":[{"type":"text","id":"start_text"},{"type":"arrow","id":"arrow1"}],"updated":1,"link":null,"locked":false},{"id":"start_text","type":"text","x":200,"y":100,"width":150,"height":60,"angle":0,"strokeColor":"#000000","backgroundColor":"transparent","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":null,"seed":2002,"version":1,"versionNonce":2002,"isDeleted":false,"boundElements":null,"updated":1,"link":null,"locked":false,"fontSize":20,"fontFamily":1,"text":"Start","textAlign":"center","verticalAlign":"middle","containerId":"start","originalText":"Start"},{"id":"end","type":"ellipse","x":200,"y":300,"width":150,"height":60,"angle":0,"strokeColor":"#000000","backgroundColor":"#f87171","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":{"type":2},"seed":2003,"version":1,"versionNonce":2003,"isDeleted":false,"boundElements":[{"type":"text","id":"end_text"},{"type":"arrow","id":"arrow1"}],"updated":1,"link":null,"locked":false},{"id":"end_text","type":"text","x":200,"y":300,"width":150,"height":60,"angle":0,"strokeColor":"#000000","backgroundColor":"transparent","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":null,"seed":2004,"version":1,"versionNonce":2004,"isDeleted":false,"boundElements":null,"updated":1,"link":null,"locked":false,"fontSize":20,"fontFamily":1,"text":"End","textAlign":"center","verticalAlign":"middle","containerId":"end","originalText":"End"},{"id":"arrow1","type":"arrow","x":275,"y":160,"width":0,"height":140,"angle":0,"strokeColor":"#000000","backgroundColor":"transparent","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":{"type":2},"seed":2005,"version":1,"versionNonce":2005,"isDeleted":false,"boundElements":null,"updated":1,"link":null,"locked":false,"points":[[0,0],[0,140]],"lastCommittedPoint":null,"startBinding":{"elementId":"start","gap":1,"focus":0},"endBinding":{"elementId":"end","gap":1,"focus":0},"startArrowhead":null,"endArrowhead":"arrow"}],"files":{}}
+- Root structure: {"type":"excalidraw/clipboard","elements":[],"files":{}}
+- MUST output only essential fields; omit all default-value properties (angle, opacity, fillStyle, strokeStyle, roughness, groupIds, version, versionNonce, isDeleted, updated, link, locked, originalText are auto-filled by the frontend)
+
+## MINIMAL FIELDS
+
+Shape (rectangle/ellipse/diamond):
+{"id":"N1","type":"rectangle","x":200,"y":100,"width":240,"height":70,"strokeColor":"#22d3ee","backgroundColor":"#08334466","boundElements":[{"type":"text","id":"T1"},{"type":"arrow","id":"A1"}]}
+
+Text (type:text, bound to a shape):
+{"id":"T1","type":"text","x":210,"y":105,"width":220,"height":60,"fontSize":18,"strokeColor":"#f8fafc","text":"Node name","containerId":"N1"}
+
+Arrow (type:arrow, connecting two shapes):
+{"id":"A1","type":"arrow","x":520,"y":120,"width":0,"height":200,"strokeColor":"#94a3b8","points":[[0,0],[0,200]],"startBinding":{"elementId":"N1","gap":1},"endBinding":{"elementId":"N2","gap":1},"endArrowhead":"arrow"}
+
 ## LAYOUT
 - direction: top_to_bottom
 - node_width_min: 200
@@ -100,12 +111,8 @@ DO NOT use:
 - Nodes must not overlap
 - All bindings must be valid
 
-## VALIDATION
-- Must check spacing between all nodes
-- Must automatically fix overlaps and spacing issues
-
 ## OUTPUT
-- After generating, inform the user: you can paste directly into an Excalidraw file with Ctrl+V
+- After generating, inform the user: can paste directly into an Excalidraw file with Ctrl+V
 
 ---
 

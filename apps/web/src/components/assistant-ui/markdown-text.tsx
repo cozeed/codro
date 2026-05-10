@@ -14,6 +14,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
+import { normalizeBoardJson } from "@/lib/normalize-board";
 import { DrawioDiagram } from "@/components/assistant-ui/drawio-diagram";
 import { ExcalidrawDiagram } from "@/components/assistant-ui/excalidraw-diagram";
 import { MermaidDiagram } from "@/components/assistant-ui/mermaid-diagram";
@@ -63,7 +64,12 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
         const parsed = JSON.parse(code);
         const editor = BlockNoteEditor.create({ initialContent: parsed });
         content = editor.blocksToMarkdownLossy(editor.document);
-      } catch { /* JSON parse failed, fall back to raw code */ }
+      } catch {
+        /* JSON parse failed, fall back to raw code */
+      }
+    } else if (language === "board") {
+      const normalized = normalizeBoardJson(code);
+      if (normalized) content = normalized;
     }
 
     copyToClipboard(content);

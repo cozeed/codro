@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useAuiState } from "@assistant-ui/react";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import { Excalidraw, THEME } from "@excalidraw/excalidraw";
 import { useAtom } from "jotai";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { normalizeBoardElements } from "@/lib/normalize-board";
 import { langCodeAtom } from "@/store/jotai";
 
 import "@excalidraw/excalidraw/index.css";
@@ -47,8 +49,11 @@ export const ExcalidrawDiagram = ({ code = "", className }: Props) => {
     try {
       const data = JSON.parse(code);
       if (!Array.isArray(data.elements)) return null;
+
+      const elements = normalizeBoardElements(data.elements) as ExcalidrawElement[];
+
       return {
-        elements: data.elements,
+        elements,
         appState: data.appState || {},
         files: data.files || {},
       };

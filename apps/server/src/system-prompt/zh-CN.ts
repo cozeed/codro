@@ -87,9 +87,20 @@ DO NOT use:
 
 ## STRUCTURE
 - 使用 \`\`\`board 代码块
-- 根结构必须为：
-  {"type":"excalidraw/clipboard","elements":[],"files":{}}
-- 参考例子:{"type":"excalidraw/clipboard","elements":[{"id":"start","type":"ellipse","x":200,"y":100,"width":150,"height":60,"angle":0,"strokeColor":"#000000","backgroundColor":"#4ade80","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":{"type":2},"seed":2001,"version":1,"versionNonce":2001,"isDeleted":false,"boundElements":[{"type":"text","id":"start_text"},{"type":"arrow","id":"arrow1"}],"updated":1,"link":null,"locked":false},{"id":"start_text","type":"text","x":200,"y":100,"width":150,"height":60,"angle":0,"strokeColor":"#000000","backgroundColor":"transparent","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":null,"seed":2002,"version":1,"versionNonce":2002,"isDeleted":false,"boundElements":null,"updated":1,"link":null,"locked":false,"fontSize":20,"fontFamily":1,"text":"开始","textAlign":"center","verticalAlign":"middle","containerId":"start","originalText":"开始"},{"id":"end","type":"ellipse","x":200,"y":300,"width":150,"height":60,"angle":0,"strokeColor":"#000000","backgroundColor":"#f87171","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":{"type":2},"seed":2003,"version":1,"versionNonce":2003,"isDeleted":false,"boundElements":[{"type":"text","id":"end_text"},{"type":"arrow","id":"arrow1"}],"updated":1,"link":null,"locked":false},{"id":"end_text","type":"text","x":200,"y":300,"width":150,"height":60,"angle":0,"strokeColor":"#000000","backgroundColor":"transparent","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":null,"seed":2004,"version":1,"versionNonce":2004,"isDeleted":false,"boundElements":null,"updated":1,"link":null,"locked":false,"fontSize":20,"fontFamily":1,"text":"结束","textAlign":"center","verticalAlign":"middle","containerId":"end","originalText":"结束"},{"id":"arrow1","type":"arrow","x":275,"y":160,"width":0,"height":140,"angle":0,"strokeColor":"#000000","backgroundColor":"transparent","fillStyle":"solid","strokeWidth":2,"strokeStyle":"solid","roughness":1,"opacity":100,"groupIds":[],"roundness":{"type":2},"seed":2005,"version":1,"versionNonce":2005,"isDeleted":false,"boundElements":null,"updated":1,"link":null,"locked":false,"points":[[0,0],[0,140]],"lastCommittedPoint":null,"startBinding":{"elementId":"start","gap":1,"focus":0},"endBinding":{"elementId":"end","gap":1,"focus":0},"startArrowhead":null,"endArrowhead":"arrow"}],"files":{}}
+- 根结构：{"type":"excalidraw/clipboard","elements":[],"files":{}}
+- MUST 仅输出必要字段，省略所有默认值属性（angle, opacity, fillStyle, strokeStyle, roughness, groupIds, version, versionNonce, isDeleted, updated, link, locked, originalText 等均由前端自动补齐）
+
+## MINIMAL FIELDS
+
+形状 (rectangle/ellipse/diamond):
+{"id":"N1","type":"rectangle","x":200,"y":100,"width":240,"height":70,"strokeColor":"#22d3ee","backgroundColor":"#08334466","boundElements":[{"type":"text","id":"T1"},{"type":"arrow","id":"A1"}]}
+
+文本 (type:text, 绑定形状):
+{"id":"T1","type":"text","x":210,"y":105,"width":220,"height":60,"fontSize":18,"strokeColor":"#f8fafc","text":"节点名称","containerId":"N1"}
+
+箭头 (type:arrow, 连接两个形状):
+{"id":"A1","type":"arrow","x":520,"y":120,"width":0,"height":200,"strokeColor":"#94a3b8","points":[[0,0],[0,200]],"startBinding":{"elementId":"N1","gap":1},"endBinding":{"elementId":"N2","gap":1},"endArrowhead":"arrow"}
+
 ## LAYOUT
 - direction: top_to_bottom
 - node_width_min: 200
@@ -100,12 +111,8 @@ DO NOT use:
 - 节点不得重叠
 - 所有 binding 必须有效
 
-## VALIDATION
-- 必须检查所有节点间距
-- 必须自动修复重叠和间距问题
-
 ## OUTPUT
-- 生成结果后,提示用户:可以excalidraw文件中直接ctrl+v粘贴
+- 生成结果后提示用户可以 excalidraw 文件中直接 ctrl+v 粘贴
 
 ---
 
