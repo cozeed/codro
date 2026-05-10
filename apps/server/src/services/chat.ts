@@ -60,7 +60,7 @@ export const handleChatStream = async (c: Context) => {
         ...frontendTools(tools ?? {}),
         search: searchWebTool,
       },
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
       stopWhen: stepCountIs(5),
       onError: console.error,
     });
