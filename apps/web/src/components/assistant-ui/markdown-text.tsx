@@ -14,7 +14,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
-import { normalizeBoardJson } from "@/lib/normalize-board";
+import { processBoardCode } from "@/lib/process-board";
 import { DrawioDiagram } from "@/components/assistant-ui/drawio-diagram";
 import { ExcalidrawDiagram } from "@/components/assistant-ui/excalidraw-diagram";
 import { MermaidDiagram } from "@/components/assistant-ui/mermaid-diagram";
@@ -56,7 +56,6 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
   const { isCopied, copyToClipboard } = useCopyToClipboard();
   const onCopy = async () => {
     if (!code || isCopied) return;
-    console.log("language", language);
     let content = code;
 
     if (language === "note") {
@@ -68,8 +67,13 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
         /* JSON parse failed, fall back to raw code */
       }
     } else if (language === "board") {
-      const normalized = normalizeBoardJson(code);
-      if (normalized) content = normalized;
+      const result = processBoardCode(code);
+      if (result) {
+        content = JSON.stringify({
+          type: "excalidraw/clipboard",
+          ...result,
+        });
+      }
     }
 
     copyToClipboard(content);

@@ -16,6 +16,8 @@ target/
 deploy/nginx/
 deploy/compose.yaml
 
+.claude/settings.local.json
+
 .vercel
 
 apps/web/src-tauri/gen/
