@@ -135,6 +135,9 @@ Arrow (type:arrow, connecting two shapes):
     <root>
       <mxCell id="0"/>
       <mxCell id="1" parent="0"/>
+      <mxCell id="example" value="Example" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxGeometry x="100" y="100" width="120" height="60" as="geometry"/>
+      </mxCell>
     </root>
   </mxGraphModel>
 
@@ -149,6 +152,7 @@ Arrow (type:arrow, connecting two shapes):
   - Any unknown XML entities
 
 ## NODE_RULES (STRICT)
+- MUST: all mxGeometry must include as="geometry"
 - value must be plain text (no HTML tags)
 - Use &#10; for line breaks
 - MUST: whiteSpace=wrap

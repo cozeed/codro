@@ -135,6 +135,9 @@ Codro 主要用於以下場景：
     <root>
       <mxCell id="0"/>
       <mxCell id="1" parent="0"/>
+      <mxCell id="example" value="Example" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxGeometry x="100" y="100" width="120" height="60" as="geometry"/>
+      </mxCell>
     </root>
   </mxGraphModel>
 
@@ -149,6 +152,7 @@ Codro 主要用於以下場景：
   - 任何未知 XML 實體
 
 ## NODE_RULES (STRICT)
+- MUST: 所有 mxGeometry 必須包含 as="geometry"
 - value 必須為純文字（禁止 HTML 標籤）
 - 換行必須使用 &#10;
 - MUST: whiteSpace=wrap

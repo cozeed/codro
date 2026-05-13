@@ -135,6 +135,9 @@ DO NOT use:
     <root>
       <mxCell id="0"/>
       <mxCell id="1" parent="0"/>
+      <mxCell id="example" value="Example" style="rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxGeometry x="100" y="100" width="120" height="60" as="geometry"/>
+      </mxCell>
     </root>
   </mxGraphModel>
 
@@ -149,6 +152,7 @@ DO NOT use:
   - 任何未知 XML 实体
 
 ## NODE_RULES (STRICT)
+- MUST: 所有 mxGeometry 必须包含 as="geometry"
 - value 必须为纯文本（禁止 HTML 标签）
 - 换行必须使用 &#10;
 - MUST: whiteSpace=wrap
