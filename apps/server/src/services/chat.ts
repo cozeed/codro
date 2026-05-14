@@ -49,7 +49,9 @@ export const handleChatStream = async (c: Context) => {
     }
     providerItem.models = model;
 
-    const systemPrompt = buildSystemPrompt(clientSystemPrompt);
+    const lastUserMessage = messages?.filter((m: { role: string }) => m.role === "user").pop()?.parts;
+    const systemPrompt = buildSystemPrompt(clientSystemPrompt, lastUserMessage);
+
     const modelMessages = await convertToModelMessages(messages);
     // stream text from language model
     const result = streamText({
@@ -61,7 +63,7 @@ export const handleChatStream = async (c: Context) => {
         search: searchWebTool,
       },
       maxOutputTokens: 16384,
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(10),
       onError: console.error,
     });
 
