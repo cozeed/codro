@@ -18,11 +18,11 @@
   "prettier": "@workspace/prettier-config",
   "dependencies": {
     "@workspace/db": "workspace:*",
-    "better-auth": "^1.6.9",
+    "better-auth": "^1.6.11",
     "url-join": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.7.0",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
