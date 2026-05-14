@@ -157,11 +157,18 @@ function repositionElements(rawElements: RawBoardElement[]): RawBoardElement[] |
     g.setNode(shape.id, { width: shape.width || 200, height: shape.height || 60 });
   }
 
+  let edgeCount = 0;
   for (const arrow of arrows) {
     const from = arrow.startBinding?.elementId;
     const to = arrow.endBinding?.elementId;
-    if (from && to) g.setEdge(from, to, {}, arrow.id);
+    if (from && to) {
+      g.setEdge(from, to, {}, arrow.id);
+      edgeCount++;
+    }
   }
+
+  // Skip dagre layout if no valid edges — AI placed coordinates manually
+  if (edgeCount === 0) return elements;
 
   dagre.layout(g);
 
