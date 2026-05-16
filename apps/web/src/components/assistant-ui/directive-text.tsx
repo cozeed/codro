@@ -24,7 +24,7 @@ export function createDirectiveText(
   const fallbackIcon = options?.fallbackIcon;
 
   const Component: TextMessagePartComponent = ({ text }) => {
-    const normalized = /:command\[/.test(text) ? text : text.replace(/\/(\w+)/g, ":command[/$1]{name=$1}");
+    const normalized = /:command\[/.test(text) ? text : text.replace(/(?<=^|\s)\/(\w+)/g, ":command[/$1]{name=$1}");
     const segments = formatter.parse(normalized);
 
     if (segments.length === 1 && segments[0]!.kind === "text") {
