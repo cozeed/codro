@@ -29,7 +29,7 @@
     "@workspace/auth": "workspace:*",
     "@workspace/db": "workspace:*",
     "ai": "^6.0.180",
-    "assistant-stream": "^0.3.13",
+    "assistant-stream": "^0.3.14",
     "flydrive": "^2.1.0",
     "hono": "^4.12.18",
     "nanoid": "^5.1.11",
