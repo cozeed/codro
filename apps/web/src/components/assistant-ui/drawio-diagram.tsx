@@ -51,7 +51,7 @@ export const DrawioDiagram = ({ code = "", className }: Props) => {
               spin: false,
               modified: false,
               libraries: false,
-              edit: "_blank",
+              chrome: false,
               noSaveBtn: true,
               noExitBtn: true,
               saveAndExit: false,
