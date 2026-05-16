@@ -49,6 +49,6 @@ export const DRAWIO_PROMPT = `
 ## VALIDATION!
 - Before final output, must check every edge's complete path; if any intersection with nodes or boundaries, illegal crossings, disallowed overlaps, or unnecessary detours are found, must fix by recalculating node positions, increasing level or node spacing, adjusting connection ports or bend positions, until only the permitted target-end final segment overlap remains.
 
-## OUTPUT
-- After generating, inform the user: can paste directly into draw.io with Ctrl+V.
+## OUTPUT (MUST)
+- Output in the user's language: "You can paste this directly into draw.io with Ctrl+V"
 `.trim();

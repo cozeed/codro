@@ -18,6 +18,6 @@ export const BLOCKNOTE_PROMPT = `
   }
 ]
 
-## OUTPUT
-- After generating, inform the user: you can paste directly into a BlockNote file with Ctrl+V
+## OUTPUT (MUST)
+- Output in the user's language: "You can paste this directly into a BlockNote file with Ctrl+V"
 `.trim();

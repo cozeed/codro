@@ -40,8 +40,6 @@ DO NOT use:
 | Neutral   | #1e293b80  | #94a3b8 | #f8fafc | External, generic, unknown        |
 | Highlight | #3b82f64d  | #60a5fa | #ffffff | Active state, focus, current step |
 
-## OUTPUT
-- After generating, inform the user:
-  You can copy and paste directly into Excalidraw (Ctrl + V), or in Draw.io choose:
-  "Insert → Advanced → Mermaid → Paste code → Insert"
+## OUTPUT (MUST)
+- Output in the user's language: "You can paste directly into Excalidraw (Ctrl+V), or in Draw.io: Arrange → Insert → Mermaid... → Paste code → Insert"
 `.trim();

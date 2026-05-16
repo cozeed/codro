@@ -12,6 +12,6 @@ export const MINDMAP_PROMPT = `
 - No Markdown or explanatory text
 - JSON must be valid
 
-## OUTPUT
-- After generating, inform the user: select a parent node in the mindmap file first, then paste with Ctrl+V
+## OUTPUT (MUST)
+- Output in the user's language: "Select a parent node in the mindmap file first, then paste with Ctrl+V"
 `.trim();

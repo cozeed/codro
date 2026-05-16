@@ -27,6 +27,6 @@ Arrow (type:arrow, connecting two shapes):
 - Nodes must not overlap
 - All bindings must be valid
 
-## OUTPUT
-- After generating, inform the user: can paste directly into a tldraw file with Ctrl+V
+## OUTPUT (MUST)
+- Output in the user's language: "You can paste this directly into a tldraw file with Ctrl+V"
 `.trim();
