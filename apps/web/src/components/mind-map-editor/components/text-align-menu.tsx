@@ -42,7 +42,7 @@ export const TextAlignMenu = forwardRef<HTMLDivElement, Props>(
           side="top"
           sideOffset={8}
           hideWhenDetached={true}
-          className="bg-popover z-[9999] max-h-[calc(1.5rem*4+0.25rem*(4-1)+0.25rem*2))] space-y-1 overflow-y-auto rounded border-0 p-1 shadow-md"
+          className="bg-popover z-9999 max-h-[calc(1.5rem*4+0.25rem*(4-1)+0.25rem*2))] space-y-1 overflow-y-auto rounded border-0 p-1 shadow-md"
           onInteractOutside={(e) => {
             e.preventDefault();
           }}

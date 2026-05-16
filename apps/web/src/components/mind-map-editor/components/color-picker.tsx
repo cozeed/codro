@@ -53,7 +53,7 @@ export const ColorPicker = forwardRef<HTMLDivElement, Props>(
           side="top"
           sideOffset={8}
           hideWhenDetached={true}
-          className="bg-popover z-[9999] w-auto rounded p-0 shadow-md"
+          className="bg-popover z-9999 w-auto rounded p-0 shadow-md"
           onInteractOutside={(e) => {
             e.preventDefault();
           }}

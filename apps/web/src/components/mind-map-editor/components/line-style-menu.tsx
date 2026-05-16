@@ -49,7 +49,7 @@ export const LineStyleMenu = forwardRef<HTMLDivElement, Props>(({ editor }, ref)
         sideOffset={8}
         hideWhenDetached={true}
         onEscapeKeyDown={() => setOpen(false)}
-        className="bg-popover z-[9999] max-h-[calc(4rem*4+0.25rem*(4-1)+0.25rem*2)] w-20 space-y-1 overflow-y-auto rounded border-0 p-1 shadow-md"
+        className="bg-popover z-9999 max-h-[calc(4rem*4+0.25rem*(4-1)+0.25rem*2)] w-20 space-y-1 overflow-y-auto rounded border-0 p-1 shadow-md"
       >
         {lineStyleListOptions.map((item) => (
           <DropdownMenuItem
