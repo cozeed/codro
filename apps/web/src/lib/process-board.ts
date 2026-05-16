@@ -21,6 +21,8 @@ function normalizeBoardElements(elements: Record<string, unknown>[]) {
     if (el.id) containerMap.set(el.id as string, el);
   }
 
+  const textBindings = new Map<string, { type: string; id: string }[]>();
+
   const result = elements.map((el) => {
     const seed = el.seed ?? Math.floor(Math.random() * 100000);
     const base: Record<string, unknown> = {
@@ -48,6 +50,8 @@ function normalizeBoardElements(elements: Record<string, unknown>[]) {
         base.y = (Number(container.y) || 0) + (ch - fs * lh) / 2;
         base.width = cw;
         base.height = ch;
+        const binding = { type: "text", id: el.id as string };
+        textBindings.set(container.id as string, [...(textBindings.get(container.id as string) ?? []), binding]);
       }
       return {
         ...base,
@@ -77,160 +81,164 @@ function normalizeBoardElements(elements: Record<string, unknown>[]) {
     };
   });
 
+  // Track arrow→shape bindings so shapes list all arrows that reference them
+  const arrowBindings = new Map<string, { type: string; id: string }[]>();
+  for (const el of result) {
+    const e = el as Record<string, unknown>;
+    if (e.type === "arrow") {
+      const sb = e.startBinding as { elementId?: string } | null;
+      const eb = e.endBinding as { elementId?: string } | null;
+      for (const binding of [sb, eb]) {
+        if (binding?.elementId) {
+          const entry = { type: "arrow", id: e.id as string };
+          arrowBindings.set(binding.elementId, [...(arrowBindings.get(binding.elementId) ?? []), entry]);
+        }
+      }
+    }
+  }
+
+  for (const el of result) {
+    const bindings = [
+      ...(textBindings.get((el as Record<string, unknown>).id as string) ?? []),
+      ...(arrowBindings.get((el as Record<string, unknown>).id as string) ?? []),
+    ];
+    if (bindings.length > 0) {
+      const existing = ((el as Record<string, unknown>).boundElements as { type: string; id: string }[]) ?? [];
+      const existingIds = new Set(existing.map((b: { id: string }) => b.id));
+      (el as Record<string, unknown>).boundElements = [...existing, ...bindings.filter((b) => !existingIds.has(b.id))];
+    }
+  }
+
   return result;
 }
 
-interface RawBoardElement {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  containerId?: string;
-  startBinding?: { elementId: string; gap?: number };
-  endBinding?: { elementId: string; gap?: number };
-  boundElements?: { type: string; id: string }[];
-  [key: string]: unknown;
-}
+function repositionElements(elements: Record<string, unknown>[]): Record<string, unknown>[] {
+  const shapeMap = new Map<string, Record<string, unknown>>();
+  const arrowList: Record<string, unknown>[] = [];
+  const standaloneTexts: Record<string, unknown>[] = [];
 
-function repositionElements(rawElements: RawBoardElement[]): RawBoardElement[] | null {
-  if (rawElements.length === 0) return null;
-
-  const elements = rawElements.map((e) => ({ ...e }));
-
-  const texts = elements.filter((e) => e.type === "text");
-  const arrows = elements.filter((e) => e.type === "arrow");
-  const shapes = elements.filter((e) => e.type !== "text" && e.type !== "arrow");
-
-  if (shapes.length === 0) return null;
-
-  // Only reposition standard flowchart shapes (sequence diagrams have line/freedraw/etc.)
-  const FLOWCHART_TYPES = new Set(["rectangle", "diamond", "ellipse"]);
-  if (shapes.some((s) => !FLOWCHART_TYPES.has(s.type))) return elements;
-
-  // Match standalone texts to nearest arrow by endpoint midpoint
-  const shapeCenterMap = new Map<string, { cx: number; cy: number }>();
-  for (const shape of shapes) {
-    shapeCenterMap.set(shape.id, {
-      cx: shape.x + (shape.width || 200) / 2,
-      cy: shape.y + (shape.height || 60) / 2,
-    });
+  for (const el of elements) {
+    if (el.type === "arrow") {
+      arrowList.push(el);
+    } else if (el.type === "rectangle" || el.type === "ellipse" || el.type === "diamond") {
+      shapeMap.set(el.id as string, el);
+    } else if (el.type === "text" && !el.containerId) {
+      standaloneTexts.push(el);
+    }
   }
 
-  const SNAP_RADIUS = 200;
-  const textArrowMap = new Map<string, string>();
+  // Match standalone texts to nearest arrow and bind via containerId
+  if (standaloneTexts.length > 0) {
+    const shapeCenterMap = new Map<string, { cx: number; cy: number }>();
+    for (const [id, shape] of shapeMap) {
+      shapeCenterMap.set(id, {
+        cx: Number(shape.x) + Number(shape.width) / 2,
+        cy: Number(shape.y) + Number(shape.height) / 2,
+      });
+    }
 
-  for (const text of texts) {
-    if (text.containerId) continue;
-    const tx = text.x + (text.width || 40) / 2;
-    const ty = text.y + (text.height || 20) / 2;
+    for (const text of standaloneTexts) {
+      const tx = Number(text.x) + Number(text.width || 40) / 2;
+      const ty = Number(text.y) + Number(text.height || 20) / 2;
+      let bestArrow: Record<string, unknown> | null = null;
+      let bestDist = Infinity;
 
-    let bestId: string | null = null;
-    let bestDist = Infinity;
+      for (const arrow of arrowList) {
+        const sb = arrow.startBinding as { elementId?: string } | null;
+        const eb = arrow.endBinding as { elementId?: string } | null;
+        if (!sb?.elementId || !eb?.elementId) continue;
+        const sc = shapeCenterMap.get(sb.elementId);
+        const tc = shapeCenterMap.get(eb.elementId);
+        if (!sc || !tc) continue;
+        const dist = Math.hypot((sc.cx + tc.cx) / 2 - tx, (sc.cy + tc.cy) / 2 - ty);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestArrow = arrow;
+        }
+      }
 
-    for (const arrow of arrows) {
-      const from = arrow.startBinding?.elementId;
-      const to = arrow.endBinding?.elementId;
-      if (!from || !to) continue;
-      const sc = shapeCenterMap.get(from);
-      const tc = shapeCenterMap.get(to);
-      if (!sc || !tc) continue;
-      const mx = (sc.cx + tc.cx) / 2;
-      const my = (sc.cy + tc.cy) / 2;
-      const dist = Math.hypot(mx - tx, my - ty);
-      if (dist < bestDist && dist < SNAP_RADIUS) {
-        bestDist = dist;
-        bestId = arrow.id;
+      if (bestArrow) {
+        text.containerId = bestArrow.id as string;
+        const arrowEl = bestArrow;
+        const existing = (arrowEl.boundElements as { type: string; id: string }[]) ?? [];
+        if (!existing.some((b) => b.id === text.id)) {
+          arrowEl.boundElements = [...existing, { type: "text", id: text.id as string }];
+        }
       }
     }
-
-    if (bestId) textArrowMap.set(text.id, bestId);
   }
 
-  // Build dagre graph: shapes as nodes, arrows as edges
-  const g = new dagre.graphlib.Graph({ multigraph: true });
-  g.setGraph({ rankdir: "TB", nodesep: 80, ranksep: 80, marginx: 40, marginy: 40 });
-  g.setDefaultEdgeLabel(() => ({}));
+  // Flowchart detection: arrows with valid bindings to shapes
+  const edges: { arrow: Record<string, unknown>; from: string; to: string }[] = [];
+  const connectedShapes = new Set<string>();
 
-  for (const shape of shapes) {
-    g.setNode(shape.id, { width: shape.width || 200, height: shape.height || 60 });
-  }
-
-  let edgeCount = 0;
-  for (const arrow of arrows) {
-    const from = arrow.startBinding?.elementId;
-    const to = arrow.endBinding?.elementId;
-    if (from && to) {
-      g.setEdge(from, to, {}, arrow.id);
-      edgeCount++;
+  for (const arrow of arrowList) {
+    const sb = arrow.startBinding as { elementId?: string } | null;
+    const eb = arrow.endBinding as { elementId?: string } | null;
+    const startId = sb?.elementId;
+    const endId = eb?.elementId;
+    if (startId && endId && shapeMap.has(startId) && shapeMap.has(endId)) {
+      edges.push({ arrow, from: startId, to: endId });
+      connectedShapes.add(startId);
+      connectedShapes.add(endId);
     }
   }
 
-  // Skip dagre layout if no valid edges — AI placed coordinates manually
-  if (edgeCount === 0) return elements;
+  // No valid arrow bindings → not a flowchart
+  if (edges.length === 0) return elements;
+
+  const g = new dagre.graphlib.Graph();
+  g.setGraph({ rankdir: "TB", nodesep: 80, edgesep: 60, ranksep: 100, marginx: 40, marginy: 40 });
+  g.setDefaultEdgeLabel(() => ({}));
+
+  for (const id of connectedShapes) {
+    const shape = shapeMap.get(id)!;
+    g.setNode(id, { width: Number(shape.width) || 200, height: Number(shape.height) || 60 });
+  }
+
+  for (const { from, to } of edges) {
+    g.setEdge(from, to);
+  }
 
   dagre.layout(g);
 
-  // Reposition shapes
-  const posMap = new Map<string, { x: number; y: number }>();
-  for (const shape of shapes) {
-    const pos = g.node(shape.id);
-    if (!pos) continue;
-    const w = shape.width || 200;
-    const h = shape.height || 60;
-    shape.x = pos.x - w / 2;
-    shape.y = pos.y - h / 2;
-    posMap.set(shape.id, { x: shape.x, y: shape.y });
+  // Apply new positions to shapes
+  for (const id of connectedShapes) {
+    const node = g.node(id);
+    const shape = shapeMap.get(id)!;
+    shape.x = node.x - node.width / 2;
+    shape.y = node.y - node.height / 2;
   }
 
-  // Reposition container texts — center vertically by estimated natural height
-  for (const text of texts) {
-    if (!text.containerId || !posMap.has(text.containerId)) continue;
-    const shape = shapes.find((s) => s.id === text.containerId);
-    if (!shape) continue;
-    const sh = shape.height || 60;
-    const fontSize = (text.fontSize as number) || 20;
-    const lineHeight = (text.lineHeight as number) || 1.25;
-    text.x = shape.x;
-    text.y = shape.y + (sh - fontSize * lineHeight) / 2;
-    text.width = shape.width || 200;
-    text.height = sh;
-  }
-
-  // Reposition arrows & place matched texts at arrow path midpoint
-  for (const arrow of arrows) {
-    const from = arrow.startBinding?.elementId;
-    const to = arrow.endBinding?.elementId;
-    if (!from || !to) continue;
-    const edgeObj = g.edge(from, to, arrow.id) as { points?: { x: number; y: number }[] } | undefined;
-    if (edgeObj?.points && edgeObj.points.length >= 2) {
-      const pts = edgeObj.points;
-      const xs = pts.map((p) => p.x);
-      const ys = pts.map((p) => p.y);
-      const minX = Math.min(...xs);
-      const minY = Math.min(...ys);
-      const maxX = Math.max(...xs);
-      const maxY = Math.max(...ys);
-      arrow.x = minX;
-      arrow.y = minY;
-      arrow.width = Math.max(1, maxX - minX);
-      arrow.height = Math.max(1, maxY - minY);
-      arrow.points = pts.map((p) => [p.x - minX, p.y - minY]);
-
-      // Position matched text at the midpoint of this arrow's path
-      for (const [textId, arrowId] of textArrowMap) {
-        if (arrowId !== arrow.id) continue;
-        const text = texts.find((t) => t.id === textId);
-        if (!text) continue;
-        const midPt = pts[Math.floor(pts.length / 2)];
-        if (!midPt) continue;
-        const tw = text.width || 40;
-        const th = text.height || 20;
-        text.x = midPt.x - tw / 2;
-        text.y = midPt.y - th / 2;
+  // Sync text elements bound to moved shapes
+  for (const el of elements) {
+    if (el.type === "text" && el.containerId) {
+      const container = shapeMap.get(el.containerId as string);
+      if (container && connectedShapes.has(el.containerId as string)) {
+        const cw = Number(container.width) || 200;
+        const ch = Number(container.height) || 60;
+        const fs = (el.fontSize as number) || 20;
+        const lh = 1.25;
+        el.x = Number(container.x) || 0;
+        el.y = (Number(container.y) || 0) + (ch - fs * lh) / 2;
+        el.width = cw;
+        el.height = ch;
       }
     }
+  }
+
+  // Update arrow positions based on moved shapes
+  for (const { arrow, from, to } of edges) {
+    const fromShape = shapeMap.get(from)!;
+    const toShape = shapeMap.get(to)!;
+    const fx = Number(fromShape.x) + Number(fromShape.width) / 2;
+    const fy = Number(fromShape.y) + Number(fromShape.height);
+    const tx = Number(toShape.x) + Number(toShape.width) / 2;
+    const ty = Number(toShape.y);
+
+    arrow.x = fx;
+    arrow.y = fy;
+    arrow.points = [[0, 0], [tx - fx, ty - fy]];
   }
 
   return elements;
@@ -252,11 +260,7 @@ export function processBoardCode(code: string): ProcessedBoard | null {
         : null;
     if (!rawElements || rawElements.length === 0) return null;
 
-    const normalized = normalizeBoardElements(
-      rawElements as unknown as Record<string, unknown>[],
-    ) as unknown as RawBoardElement[];
-    const repositioned = repositionElements(normalized);
-    const elements = (repositioned as unknown as Record<string, unknown>[]) ?? normalized;
+    const elements = repositionElements(normalizeBoardElements(rawElements));
 
     return {
       elements,
