@@ -2,6 +2,8 @@ use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::sync::Mutex;
 
+use tauri::webview::{DownloadEvent, WebviewWindowBuilder};
+
 static OAUTH_TOKEN: Mutex<Option<String>> = Mutex::new(None);
 
 #[tauri::command]
@@ -20,7 +22,6 @@ fn start_oauth_server() -> Result<u16, String> {
             let _ = stream.read(&mut buf);
             let request = String::from_utf8_lossy(&buf);
 
-            // Parse "GET /?token=xxx HTTP/1.1"
             let token = request
                 .lines()
                 .next()
@@ -65,6 +66,43 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .invoke_handler(tauri::generate_handler![greet, start_oauth_server, take_oauth_token])
+        .setup(|app| {
+            let handle = app.handle();
+            let _window = WebviewWindowBuilder::from_config(handle, &app.config().app.windows[0])?
+                .on_download(|_webview, event| {
+                    match event {
+                        DownloadEvent::Requested { url, destination } => {
+                            let default_name = destination
+                                .file_name()
+                                .and_then(|n| n.to_str())
+                                .or_else(|| url.path_segments().and_then(|s| s.last()))
+                                .unwrap_or("download");
+                            let ext = std::path::Path::new(default_name)
+                                .extension()
+                                .and_then(|e| e.to_str())
+                                .unwrap_or("");
+                            let mut dialog = rfd::FileDialog::new()
+                                .set_file_name(default_name);
+                            if !ext.is_empty() {
+                                dialog = dialog.add_filter(
+                                    &format!("{} (*.{})", ext.to_uppercase(), ext),
+                                    &[ext],
+                                );
+                            }
+                            if let Some(path) = dialog.save_file() {
+                                *destination = path;
+                                true
+                            } else {
+                                false
+                            }
+                        }
+                        DownloadEvent::Finished { .. } => true,
+                        _ => true,
+                    }
+                })
+                .build()?;
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

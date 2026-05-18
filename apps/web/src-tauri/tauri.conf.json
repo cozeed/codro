@@ -42,6 +42,8 @@
     },
     "windows": [
       {
+        "label": "main",
+        "create": false,
         "devtools": true,
         "fullscreen": false,
         "title": "codro",
