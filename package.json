@@ -28,7 +28,8 @@
   "packageManager": "pnpm@11.1.2",
   "pnpm": {
     "overrides": {
-      "tldraw": "3.15.5"
+      "tldraw": "3.15.5",
+      "prosemirror-model": "1.25.4"
     }
   },
   "engines": {
