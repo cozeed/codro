@@ -143,8 +143,8 @@
     "modelCount": "共 {{count}} 个模型可用",
     "saveSuccess": "设置保存成功",
 
-    "billing": "账单",
-    "billingDescription": "调整Codro账单设置"
+    "plugins": "插件",
+    "pluginsDescription": "启用或禁用文件类型插件"
   },
   "sign": {
     "signIn": "登录",

@@ -143,8 +143,8 @@
     "modelCount": "{{count}} models available in total",
     "saveSuccess": "Settings saved successfully",
 
-    "billing": "Billing",
-    "billingDescription": "Adjust the billing settings of codro"
+    "plugins": "Plugins",
+    "pluginsDescription": "Enable or disable file type plugins"
   },
   "sign": {
     "signIn": "Sign in",

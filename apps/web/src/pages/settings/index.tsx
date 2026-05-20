@@ -1,10 +1,11 @@
 import { useAtom } from "jotai";
-import { Brain, Languages, Palette, User } from "lucide-react";
+import { Brain, Languages, Palette, Puzzle, User } from "lucide-react";
 import { activeTitleAtom } from "@/store/jotai";
 
 import { SettingsAppearancePage } from "./appearance";
 import { SidebarNav } from "./components/sidebar-nav";
 import { SettingsLanguagePage } from "./language";
+import { SettingsPluginsPage } from "./plugins";
 import { SettingsProfilePage } from "./profile";
 import { SettingsProviderPage } from "./provider";
 
@@ -28,6 +29,11 @@ const sidebarNavItems = [
     title: "Provider",
     icon: <Brain size={20} />,
     component: <SettingsProviderPage />,
+  },
+  {
+    title: "Plugins",
+    icon: <Puzzle size={20} />,
+    component: <SettingsPluginsPage />,
   },
 ];
 

@@ -5,12 +5,12 @@ import { ClipboardCopy, FileEdit, FolderPlus, Trash2 } from "lucide-react";
 import type { TreeItemRenderContext } from "react-complex-tree";
 import { useTranslation } from "react-i18next";
 import type { CoFile, CoFileTree, CoFolder } from "@/types/file";
-import { deletingItemIdAtom, renamingItemIdAtom } from "@/store/jotai";
+import { deletingItemIdAtom, renamingItemIdAtom, enabledPluginsAtom } from "@/store/jotai";
 import { useAddFile } from "@/hooks/use-add-file";
 import { useAddFolder } from "@/hooks/use-add-folder";
 import { useDeleteFile } from "@/hooks/use-delete-file";
 import { useOpenItemIds } from "@/hooks/use-open-item-ids";
-import { coFileRegistry } from "@/plugins/registry";
+
 
 export interface FileTreeContextMenuItem {
   key: string;
@@ -28,6 +28,7 @@ export function useFileTreeContextMenu() {
   const { addFolder } = useAddFolder();
   const { deleteFile } = useDeleteFile();
   const { removeOpenItemIds } = useOpenItemIds();
+  const [enabledPlugins] = useAtom(enabledPluginsAtom);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const getFileTreeContextMenu = useCallback(
@@ -68,7 +69,7 @@ export function useFileTreeContextMenu() {
       ];
 
       if (isFolder) {
-        const fileTypeItems: FileTreeContextMenuItem[] = coFileRegistry.list().map((plugin) => ({
+        const fileTypeItems: FileTreeContextMenuItem[] = enabledPlugins.map((plugin) => ({
           key: `add${plugin.id}`,
           label: t(plugin.meta.tooltip),
           icon: <plugin.meta.icon className="w-4" />,

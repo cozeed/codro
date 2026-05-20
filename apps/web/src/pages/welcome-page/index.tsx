@@ -1,10 +1,11 @@
 import { ArrowUpRightFromCircle, File, Folder } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAtom } from "jotai";
 import type { CoFileTree } from "@/types/file";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { isTauriApp } from "@/lib/navigator";
 import { useFileTreeQuery } from "@/hooks/use-file-tree-query";
-import { coFileRegistry } from "@/plugins/registry";
+import { enabledPluginsAtom } from "@/store/jotai";
 import { AttentionAnimation } from "@/components/attention-animation";
 import { DownloadApp } from "@/components/download-app";
 import { Icons } from "@/components/icons";
@@ -105,9 +106,9 @@ const WelcomeContent = () => {
 
 export const WelcomePage = () => {
   const { fileTreeData, isReading } = useFileTreeQuery();
+  const [enabledPlugins] = useAtom(enabledPluginsAtom);
 
   const stats = fileTreeData ? calculateStats(fileTreeData) : null;
-  const plugins = coFileRegistry.list();
 
   if (isReading) return <Spinner withText />;
 
@@ -122,8 +123,8 @@ export const WelcomePage = () => {
         </div>
 
         {/* Row 2 */}
-        <div className="*:data-[slot=card]:bg-muted/40 dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-4 *:data-[slot=card]:shadow-xs md:grid-cols-3 xl:grid-cols-5">
-          {plugins.map((plugin) => (
+        <div className="*:data-[slot=card]:bg-muted/40 dark:*:data-[slot=card]:bg-card flex flex-wrap gap-4 *:data-[slot=card]:shadow-xs *:min-w-40 *:flex-1">
+          {enabledPlugins.map((plugin) => (
           <StatsCard
             key={plugin.id}
             title={`${plugin.meta.displayName} Files`}

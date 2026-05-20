@@ -143,8 +143,8 @@
     "modelCount": "{{count}} モデルが利用可能",
     "saveSuccess": "設定を保存しました",
 
-    "billing": "請求",
-    "billingDescription": "Codro の請求設定を調整"
+    "plugins": "プラグイン",
+    "pluginsDescription": "ファイルタイププラグインの有効/無効を切り替え"
   },
   "sign": {
     "signIn": "ログイン",

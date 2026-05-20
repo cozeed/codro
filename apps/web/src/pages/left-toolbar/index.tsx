@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { useAtom } from "jotai";
 import { FolderPlus, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { currentSidebarAtom } from "@/store/jotai";
+import { currentSidebarAtom, enabledPluginsAtom } from "@/store/jotai";
 import { useAddFile } from "@/hooks/use-add-file";
 import { useAddFolder } from "@/hooks/use-add-folder";
 import { useCurrentFolder } from "@/hooks/use-current-folder";
@@ -10,7 +10,6 @@ import { useTabJsonModel } from "@/hooks/use-tab-json-model";
 import { Icons } from "@/components/icons";
 import { Tooltip } from "@/components/tooltip";
 import { UserDropdown } from "@/components/user-dropdown";
-import { coFileRegistry } from "@/plugins/registry";
 
 interface IconButtonProps {
   className?: string;
@@ -25,7 +24,8 @@ interface Props {
   className?: string;
 }
 
-const toolbarIconCls = "size-6 text-gray-500 transition-colors duration-200 hover:brightness-75 dark:text-gray-400 dark:hover:brightness-125";
+const toolbarIconCls =
+  "size-6 text-gray-500 transition-colors duration-200 hover:brightness-75 dark:text-gray-400 dark:hover:brightness-125";
 
 const IconButton = ({ className, id, onClick, tooltip, icon, disabled }: IconButtonProps) => {
   const { t } = useTranslation();
@@ -53,6 +53,7 @@ export const LeftToolbar = ({ className }: Props) => {
   const { switchToSettingPage, tabModel } = useTabJsonModel();
   const { currentFolderId } = useCurrentFolder();
   const [currentSidebar, setCurrentSidebar] = useAtom(currentSidebarAtom);
+  const [enabledPlugins] = useAtom(enabledPluginsAtom);
 
   const handleAddFile = useCallback(
     (name: string, type: string) => (e: React.MouseEvent) => {
@@ -76,7 +77,7 @@ export const LeftToolbar = ({ className }: Props) => {
     switchToSettingPage(tabModel);
   }, [switchToSettingPage, tabModel]);
 
-  const fileButtons = coFileRegistry.list().map((plugin) => ({
+  const fileButtons = enabledPlugins.map((plugin) => ({
     id: `add-${plugin.id}`,
     name: plugin.meta.defaultFileName,
     type: plugin.id,
