@@ -1,8 +1,7 @@
 import React, { useCallback } from "react";
 import { useAtom } from "jotai";
-import { FileType, FolderPlus, Palette, Settings } from "lucide-react";
+import { FolderPlus, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { CoFileType } from "@/types/file";
 import { currentSidebarAtom } from "@/store/jotai";
 import { useAddFile } from "@/hooks/use-add-file";
 import { useAddFolder } from "@/hooks/use-add-folder";
@@ -11,13 +10,14 @@ import { useTabJsonModel } from "@/hooks/use-tab-json-model";
 import { Icons } from "@/components/icons";
 import { Tooltip } from "@/components/tooltip";
 import { UserDropdown } from "@/components/user-dropdown";
+import { coFileRegistry } from "@/plugins/registry";
 
 interface IconButtonProps {
   className?: string;
   id?: string;
   onClick: (e: React.MouseEvent) => void;
   tooltip: string;
-  Icon: React.ElementType;
+  icon: React.ReactNode;
   disabled?: boolean;
 }
 
@@ -25,7 +25,9 @@ interface Props {
   className?: string;
 }
 
-const IconButton = ({ className, id, onClick, tooltip, Icon, disabled }: IconButtonProps) => {
+const toolbarIconCls = "size-6 text-gray-500 transition-colors duration-200 hover:brightness-75 dark:text-gray-400 dark:hover:brightness-125";
+
+const IconButton = ({ className, id, onClick, tooltip, icon, disabled }: IconButtonProps) => {
   const { t } = useTranslation();
   return (
     <span
@@ -38,11 +40,7 @@ const IconButton = ({ className, id, onClick, tooltip, Icon, disabled }: IconBut
       }}
     >
       <Tooltip content={t(tooltip)} delay={0} side="right" className="">
-        <div>
-          <Icon
-            className={`size-6 text-gray-500 transition-colors duration-200 hover:brightness-75 dark:text-gray-400 dark:hover:brightness-125`}
-          />
-        </div>
+        <div>{icon}</div>
       </Tooltip>
     </span>
   );
@@ -57,7 +55,7 @@ export const LeftToolbar = ({ className }: Props) => {
   const [currentSidebar, setCurrentSidebar] = useAtom(currentSidebarAtom);
 
   const handleAddFile = useCallback(
-    (name: string, type: CoFileType) => (e: React.MouseEvent) => {
+    (name: string, type: string) => (e: React.MouseEvent) => {
       e.stopPropagation();
       if (currentSidebar === "chat") setCurrentSidebar("main");
       else addFile(name, type, tabModel, currentFolderId);
@@ -78,13 +76,13 @@ export const LeftToolbar = ({ className }: Props) => {
     switchToSettingPage(tabModel);
   }, [switchToSettingPage, tabModel]);
 
-  const fileButtons = [
-    { id: "add-board", name: "New Excalidraw", type: "board", tooltip: "operation.addBoard", Icon: Palette },
-    { id: "add-tldraw", name: "New Tldraw", type: "tldraw", tooltip: "operation.addTldraw", Icon: Icons.tldraw },
-    { id: "add-drawio", name: "New Drawio", type: "drawio", tooltip: "operation.addDrawio", Icon: Icons.drawio },
-    { id: "add-mindmap", name: "New Mindmap", type: "mindmap", tooltip: "operation.addMindmap", Icon: Icons.mindmap },
-    { id: "add-note", name: "New Note", type: "note", tooltip: "operation.addNote", Icon: FileType },
-  ];
+  const fileButtons = coFileRegistry.list().map((plugin) => ({
+    id: `add-${plugin.id}`,
+    name: plugin.meta.defaultFileName,
+    type: plugin.id,
+    tooltip: plugin.meta.tooltip,
+    icon: <plugin.meta.icon className={toolbarIconCls} />,
+  }));
 
   return (
     <div className={`flex w-10 flex-col items-center justify-between border-r px-2 py-3 ${className}`}>
@@ -92,16 +90,16 @@ export const LeftToolbar = ({ className }: Props) => {
         <IconButton
           onClick={handleAddFolder()}
           tooltip="operation.addFolder"
-          Icon={FolderPlus}
+          icon={<FolderPlus className={toolbarIconCls} />}
           disabled={isAddingFolder}
         />
-        {fileButtons.map(({ id, name, type, tooltip, Icon }) => (
+        {fileButtons.map(({ id, name, type, tooltip, icon }) => (
           <IconButton
             key={id}
             id={id}
-            onClick={handleAddFile(name, type as CoFileType)}
+            onClick={handleAddFile(name, type)}
             tooltip={tooltip}
-            Icon={Icon}
+            icon={icon}
             disabled={isAddingFile}
           />
         ))}
@@ -111,7 +109,7 @@ export const LeftToolbar = ({ className }: Props) => {
             setCurrentSidebar("chat");
           }}
           tooltip="operation.aiCreate"
-          Icon={Icons.chat}
+          icon={<Icons.chat className={toolbarIconCls} />}
         />
       </div>
       <div className="flex flex-col items-center pb-4">
@@ -121,7 +119,7 @@ export const LeftToolbar = ({ className }: Props) => {
         <span className="mb-5 flex cursor-pointer items-center px-2">
           <Tooltip content={t("operation.systemSetting")} delay={0} side="right" className="">
             <Settings
-              className={`size-6 text-gray-500 transition-colors duration-200 hover:brightness-75 dark:text-gray-400 dark:hover:brightness-125`}
+              className="size-6 text-gray-500 transition-colors duration-200 hover:brightness-75 dark:text-gray-400 dark:hover:brightness-125"
               onClick={() => {
                 onSettingsClick();
               }}

@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import type { Model } from "flexlayout-react";
 import { useAtom } from "jotai";
-import { ClipboardCopy, FileEdit, FileType, FolderPlus, Palette, Trash2 } from "lucide-react";
+import { ClipboardCopy, FileEdit, FolderPlus, Trash2 } from "lucide-react";
 import type { TreeItemRenderContext } from "react-complex-tree";
 import { useTranslation } from "react-i18next";
 import type { CoFile, CoFileTree, CoFolder } from "@/types/file";
@@ -10,7 +10,7 @@ import { useAddFile } from "@/hooks/use-add-file";
 import { useAddFolder } from "@/hooks/use-add-folder";
 import { useDeleteFile } from "@/hooks/use-delete-file";
 import { useOpenItemIds } from "@/hooks/use-open-item-ids";
-import { Icons } from "@/components/icons";
+import { coFileRegistry } from "@/plugins/registry";
 
 export interface FileTreeContextMenuItem {
   key: string;
@@ -50,7 +50,7 @@ export function useFileTreeContextMenu() {
           onSelect: (e: Event) => {
             e.stopPropagation();
             setTimeout(() => {
-              context.startRenamingItem(); // need to delay execution
+              context.startRenamingItem();
             }, 100);
             setRenamingItemId(item.id);
           },
@@ -58,7 +58,7 @@ export function useFileTreeContextMenu() {
         {
           key: "delete",
           label: t("operation.delete"),
-          icon: <Trash2 className="w-4"></Trash2>,
+          icon: <Trash2 className="w-4" />,
           onSelect: (e: Event) => {
             e.stopPropagation();
             setDeletingItemId(item.id);
@@ -68,52 +68,18 @@ export function useFileTreeContextMenu() {
       ];
 
       if (isFolder) {
+        const fileTypeItems: FileTreeContextMenuItem[] = coFileRegistry.list().map((plugin) => ({
+          key: `add${plugin.id}`,
+          label: t(plugin.meta.tooltip),
+          icon: <plugin.meta.icon className="w-4" />,
+          onSelect: (e: Event) => {
+            e.stopPropagation();
+            addFile(plugin.meta.defaultFileName, plugin.id, tabModel, item.id);
+          },
+        }));
+
         return [
-          {
-            key: "addexcalidraw",
-            label: t("operation.addBoard"),
-            icon: <Palette className="w-4" />,
-            onSelect: (e: Event) => {
-              e.stopPropagation();
-              addFile("New Excalidraw", "board", tabModel, item.id);
-            },
-          },
-          {
-            key: "addtldraw",
-            label: t("operation.addTldraw"),
-            icon: <Icons.tldraw className="w-4" />,
-            onSelect: (e: Event) => {
-              e.stopPropagation();
-              addFile("New Tldraw", "tldraw", tabModel, item.id);
-            },
-          },
-          {
-            key: "adddrawio",
-            label: t("operation.addDrawio"),
-            icon: <Icons.drawio className="w-4" />,
-            onSelect: (e: Event) => {
-              e.stopPropagation();
-              addFile("New Drawio", "drawio", tabModel, item.id);
-            },
-          },
-          {
-            key: "addmindmap",
-            label: t("operation.addMindmap"),
-            icon: <Icons.mindmap className="w-4" />,
-            onSelect: (e: Event) => {
-              e.stopPropagation();
-              addFile("New Mindmap", "mindmap", tabModel, item.id);
-            },
-          },
-          {
-            key: "addnote",
-            label: t("operation.addNote"),
-            icon: <FileType className="w-4" />,
-            onSelect: (e: Event) => {
-              e.stopPropagation();
-              addFile("New Note", "note", tabModel, item.id);
-            },
-          },
+          ...fileTypeItems,
           {
             key: "divider",
             type: "divider",
@@ -153,7 +119,6 @@ export function useFileTreeContextMenu() {
         return;
       }
       const { fileIdsToDelete: _, folderIdsToDelete } = await deleteFile(deleteItems);
-      // if folder is deleted, openItems should be removed
       removeOpenItemIds(folderIdsToDelete);
     },
     [deleteFile, removeOpenItemIds],

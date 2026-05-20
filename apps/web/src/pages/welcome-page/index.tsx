@@ -4,6 +4,7 @@ import type { CoFileTree } from "@/types/file";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { isTauriApp } from "@/lib/navigator";
 import { useFileTreeQuery } from "@/hooks/use-file-tree-query";
+import { coFileRegistry } from "@/plugins/registry";
 import { AttentionAnimation } from "@/components/attention-animation";
 import { DownloadApp } from "@/components/download-app";
 import { Icons } from "@/components/icons";
@@ -11,62 +12,27 @@ import { Logo } from "@/components/logo";
 import { Spinner } from "@/components/spinner";
 import { StatsCard } from "@/components/stats-card";
 
-import { getFileTypeIcon } from "../main-tabs/file-type";
+function calculateStats(tree: CoFileTree) {
+  const typeCounts: Record<string, number> = {};
+  let totalFolders = 0;
+  let totalFiles = 0;
 
-type FileStats = {
-  totalFolders: number;
-  totalFiles: number;
-  board: number;
-  tldraw: number;
-  drawio: number;
-  mindmap: number;
-  note: number;
-};
-
-function calculateStats(tree: CoFileTree): FileStats {
-  const stats: FileStats = {
-    totalFolders: 0,
-    totalFiles: 0,
-    board: 0,
-    tldraw: 0,
-    drawio: 0,
-    mindmap: 0,
-    note: 0,
-  };
-
-  if (!tree) return stats;
+  if (!tree) return { totalFolders, totalFiles, typeCounts };
 
   for (const node of Object.values(tree)) {
     const data = node?.data;
     if (!data) continue;
 
     if (data.type === "folder") {
-      if (data.id !== "root") stats.totalFolders++;
+      if (data.id !== "root") totalFolders++;
       continue;
     }
 
-    stats.totalFiles++;
-
-    switch (data.type) {
-      case "board":
-        stats.board++;
-        break;
-      case "tldraw":
-        stats.tldraw++;
-        break;
-      case "drawio":
-        stats.drawio++;
-        break;
-      case "mindmap":
-        stats.mindmap++;
-        break;
-      case "note":
-        stats.note++;
-        break;
-    }
+    totalFiles++;
+    typeCounts[data.type] = (typeCounts[data.type] || 0) + 1;
   }
 
-  return stats;
+  return { totalFolders, totalFiles, typeCounts };
 }
 
 const WelcomeContent = () => {
@@ -141,6 +107,7 @@ export const WelcomePage = () => {
   const { fileTreeData, isReading } = useFileTreeQuery();
 
   const stats = fileTreeData ? calculateStats(fileTreeData) : null;
+  const plugins = coFileRegistry.list();
 
   if (isReading) return <Spinner withText />;
 
@@ -156,15 +123,14 @@ export const WelcomePage = () => {
 
         {/* Row 2 */}
         <div className="*:data-[slot=card]:bg-muted/40 dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-4 *:data-[slot=card]:shadow-xs md:grid-cols-3 xl:grid-cols-5">
-          <StatsCard title="Excalidraw Files" value={stats?.board ?? 0} icon={getFileTypeIcon("board")} color="text-orange-600" />
-
-          <StatsCard title="Tldraw Files" value={stats?.tldraw ?? 0} icon={getFileTypeIcon("tldraw")} color="text-yellow-600" />
-
-          <StatsCard title="Drawio Files" value={stats?.drawio ?? 0} icon={getFileTypeIcon("drawio")} color="text-amber-600" />
-
-          <StatsCard title="Mindmap Files" value={stats?.mindmap ?? 0} icon={getFileTypeIcon("mindmap")} color="text-purple-600" />
-
-          <StatsCard title="Note Files" value={stats?.note ?? 0} icon={getFileTypeIcon("note")} color="text-blue-600" />
+          {plugins.map((plugin) => (
+          <StatsCard
+            key={plugin.id}
+            title={`${plugin.meta.displayName} Files`}
+            value={stats?.typeCounts[plugin.id] ?? 0}
+            icon={<plugin.meta.icon className="size-4" />}
+          />
+        ))}
         </div>
 
         {/* Row 3 */}

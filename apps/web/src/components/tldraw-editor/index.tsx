@@ -14,8 +14,8 @@ import {
 } from "tldraw";
 import type { CoFile } from "@/types/file";
 import { isSavingAtom, langCodeAtom } from "@/store/jotai";
-import { useTldrawDb } from "@/hooks/use-tldraw-db";
-import { useTldrawQuery } from "@/hooks/use-tldraw-query";
+import { useFileDb } from "@/hooks/use-file-db";
+import { useFileQuery } from "@/hooks/use-file-query";
 import { Spinner } from "@/components/spinner";
 
 import "tldraw/tldraw.css";
@@ -30,14 +30,14 @@ export const TldrawEditor = ({ file }: Props) => {
   const [, setIsSaving] = useAtom(isSavingAtom);
   const [editor, setEditor] = useState<Editor>();
   const prevHashRef = useRef<string>("");
-  const tldrawDb = useTldrawDb();
-  const { tldrawData, isReading } = useTldrawQuery(file.id);
+  const fileDb = useFileDb();
+  const { fileData, isReading } = useFileQuery(file.id);
   const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }));
 
   // Read data
   const readData = useCallback(() => {
-    if (!tldrawData) return;
-    const snapshot = tldrawData as TLEditorSnapshot;
+    if (!fileData) return;
+    const snapshot = fileData as TLEditorSnapshot;
     const newHash = hash(snapshot);
     if (newHash === prevHashRef.current) {
       // console.log("tldraw readData: no change, skip loadSnapshot");
@@ -46,13 +46,13 @@ export const TldrawEditor = ({ file }: Props) => {
     prevHashRef.current = newHash;
     loadSnapshot(store, snapshot);
     //
-  }, [store, tldrawData]);
+  }, [store, fileData]);
 
   // Save data
   const saveData = useCallback(
     async (editor: Editor, fileId: string) => {
       if (isReading) return;
-      if (!tldrawDb || !editor || !fileId) return;
+      if (!fileDb || !editor || !fileId) return;
       //
       const snapshot = getSnapshot(editor.store);
       if (!snapshot) return;
@@ -66,10 +66,10 @@ export const TldrawEditor = ({ file }: Props) => {
       prevHashRef.current = newHash;
       //
       setIsSaving(true);
-      await tldrawDb.updateTldraw(fileId, snapshot);
+      await fileDb.update(fileId, { data: snapshot });
       setIsSaving(false);
     },
-    [tldrawDb, isReading, setIsSaving],
+    [fileDb, isReading, setIsSaving],
   );
 
   const onChangeFn = useCallback(

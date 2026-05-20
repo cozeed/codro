@@ -1,19 +1,20 @@
 import { useContext } from "react";
-import { BoardDb } from "@/db/board-db";
+import { BaseDb } from "@/db/base-db";
 import type { PGliteClient } from "@workspace/pglite";
 import { DBContext, DBStatus } from "@workspace/pglite/provider";
 import { useAuth } from "@/hooks/use-auth";
 
-let boardDb: BoardDb | null = null;
-export const getBoardDb = (client: PGliteClient, userId: string): BoardDb => {
-  if (!boardDb) {
-    boardDb = new BoardDb(client);
+let fileDb: BaseDb | null = null;
+
+export const getFileDb = (client: PGliteClient, userId: string): BaseDb => {
+  if (!fileDb) {
+    fileDb = new BaseDb(client);
   }
-  boardDb.setUserId(userId);
-  return boardDb;
+  fileDb.setUserId(userId);
+  return fileDb;
 };
 
-export function useBoardDb() {
+export function useFileDb() {
   const { userId } = useAuth();
   const { client, status } = useContext(DBContext);
 
@@ -21,5 +22,5 @@ export function useBoardDb() {
     return null;
   }
 
-  return getBoardDb(client, userId);
+  return getFileDb(client, userId);
 }

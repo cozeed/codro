@@ -5,6 +5,7 @@ import { Button } from "@workspace/ui/components/button";
 import { useAddFile } from "@/hooks/use-add-file";
 import { useCurrentFolder } from "@/hooks/use-current-folder";
 import { useTabJsonModel } from "@/hooks/use-tab-json-model";
+import { coFileRegistry } from "@/plugins/registry";
 import { Tooltip } from "@/components/tooltip";
 
 const FILE_NAME_REGEX = /^(.+)(\.[a-zA-Z0-9]+)$/;
@@ -24,22 +25,9 @@ export const ImportFiles = () => {
       const fileName = matches?.[1] as string;
       const fileSuffix = matches?.[2] as string;
 
-      switch (fileSuffix) {
-        case ".excalidraw":
-          await addFile(fileName, "board", tabModel, folderId, fileContent);
-          break;
-        case ".tldr":
-          await addFile(fileName, "tldraw", tabModel, folderId, fileContent);
-          break;
-        case ".drawio":
-          await addFile(fileName, "drawio", tabModel, folderId, fileContent);
-          break;
-        case ".mindmap":
-          await addFile(fileName, "mindmap", tabModel, folderId, fileContent);
-          break;
-        case ".note":
-          await addFile(fileName, "note", tabModel, folderId, fileContent);
-          break;
+      const fileType = coFileRegistry.getBySuffix(fileSuffix)?.id;
+      if (fileType) {
+        await addFile(fileName, fileType, tabModel, folderId, fileContent);
       }
     },
     [tabModel, addFile],
@@ -57,7 +45,7 @@ export const ImportFiles = () => {
         {
           description: "Codro",
           accept: {
-            "application/x-codro": [".note", ".excalidraw", ".tldr", ".mindmap", ".drawio"],
+            "application/x-codro": coFileRegistry.getSuffixes(),
           },
         },
       ],

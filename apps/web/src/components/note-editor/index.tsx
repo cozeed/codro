@@ -7,15 +7,15 @@ import { useAtom } from "jotai";
 // import '@blocknote/core/fonts/inter.css';
 import "@blocknote/shadcn/style.css";
 
-import { BLOCKNOTE_INITIAL_DATA } from "@/db/note-db";
 import { uploadFile } from "@/services/storage-service";
 import { useDebounceFn } from "ahooks";
 import { useTheme } from "next-themes";
 import { hash } from "ohash";
 import type { CoFile } from "@/types/file";
 import { isSavingAtom, langCodeAtom } from "@/store/jotai";
-import { useNoteDb } from "@/hooks/use-note-db";
-import { useNoteQuery } from "@/hooks/use-note-query";
+import { useFileDb } from "@/hooks/use-file-db";
+import { useFileQuery } from "@/hooks/use-file-query";
+import { coFileRegistry } from "@/plugins/registry";
 import { Spinner } from "@/components/spinner";
 
 interface Props {
@@ -33,8 +33,10 @@ export const NoteEditor = ({ file }: Props) => {
   const prevHashRef = useRef<string>("");
   const [langCode] = useAtom(langCodeAtom);
   const [, setIsSaving] = useAtom(isSavingAtom);
-  const noteDb = useNoteDb();
-  const { noteData, isReading } = useNoteQuery(file.id);
+  const fileDb = useFileDb();
+  const { fileData, isReading } = useFileQuery(file.id);
+
+  const noteInitialData = coFileRegistry.get("note")?.data.getInitialData() as PartialBlock[] | undefined;
 
   const handleUploadFile = async (file: File) => {
     try {
@@ -53,7 +55,7 @@ export const NoteEditor = ({ file }: Props) => {
   // when language changed, create a new editor instance
   const editor = useMemo(() => {
     return BlockNoteEditor.create({
-      initialContent: BLOCKNOTE_INITIAL_DATA,
+      initialContent: noteInitialData,
       dictionary: getLanguage(langCode),
       uploadFile: handleUploadFile,
     });
@@ -61,21 +63,21 @@ export const NoteEditor = ({ file }: Props) => {
 
   // Read data
   const readData = useCallback(() => {
-    if (!noteData) return;
-    const newHash = hash(noteData);
+    if (!fileData) return;
+    const newHash = hash(fileData);
     if (newHash === prevHashRef.current) {
       // console.log("note readData: no change, skip loadSnapshot");
       return;
     }
 
     prevHashRef.current = newHash;
-    editor.replaceBlocks(editor.document, noteData as PartialBlock[]);
-  }, [noteData, editor]);
+    editor.replaceBlocks(editor.document, fileData as PartialBlock[]);
+  }, [fileData, editor]);
   // Save data
   const saveData = useCallback(
     async (editor: BlockNoteEditor, fileId: string) => {
       if (isReading) return;
-      if (!noteDb || !editor || !fileId) return;
+      if (!fileDb || !editor || !fileId) return;
       const jsonBlocks: PartialBlock[] = editor?.document ?? [];
       //
       const jsonBlocksTemp = JSON.parse(JSON.stringify(jsonBlocks)); // remove undefined properties
@@ -87,10 +89,10 @@ export const NoteEditor = ({ file }: Props) => {
       prevHashRef.current = newHash;
       //
       setIsSaving(true);
-      await noteDb.updateNote(fileId, jsonBlocksTemp);
+      await fileDb.update(fileId, { data: jsonBlocksTemp });
       setIsSaving(false);
     },
-    [noteDb, isReading, setIsSaving],
+    [fileDb, isReading, setIsSaving],
   );
 
   // when language changed, clear prevHashRef, then readData

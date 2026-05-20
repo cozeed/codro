@@ -7,8 +7,8 @@ import { DrawIoEmbed, type DrawIoEmbedRef, type EventAutoSave } from "react-draw
 import type { CoFile } from "@/types/file";
 import { isSavingAtom, langCodeAtom } from "@/store/jotai";
 import { useCurrentFile } from "@/hooks/use-current-file";
-import { useDrawioDb } from "@/hooks/use-drawio-db";
-import { useDrawioQuery } from "@/hooks/use-drawio-query";
+import { useFileDb } from "@/hooks/use-file-db";
+import { useFileQuery } from "@/hooks/use-file-query";
 import { Spinner } from "@/components/spinner";
 
 interface Props {
@@ -23,8 +23,8 @@ export const DrawioEditor = ({ file }: Props) => {
   const prevHashRef = useRef<string>("");
   const ref = useRef<DrawIoEmbedRef>(null);
   const { currentFileId } = useCurrentFile();
-  const drawioDb = useDrawioDb();
-  const { drawioData, isReading } = useDrawioQuery(file.id);
+  const fileDb = useFileDb();
+  const { fileData, isReading } = useFileQuery(file.id);
 
   const getLanguage = () => {
     if (langCode === "zh-CN") {
@@ -36,7 +36,7 @@ export const DrawioEditor = ({ file }: Props) => {
   };
   // Read data
   const readData = useCallback(() => {
-    const data = (drawioData as { xml?: string })?.xml ?? "";
+    const data = (fileData as { xml?: string })?.xml ?? "";
     if (!data) return;
     const newHash = hash(data);
     if (newHash === prevHashRef.current) {
@@ -46,12 +46,12 @@ export const DrawioEditor = ({ file }: Props) => {
     prevHashRef.current = newHash;
 
     setInitialData(data);
-  }, [drawioData]);
+  }, [fileData]);
   // Save data
   const saveData = useCallback(
     async (data: string, fileId: string) => {
       if (isReading) return;
-      if (!drawioDb || !fileId) return;
+      if (!fileDb || !fileId) return;
       const newHash = hash(data);
       if (newHash === prevHashRef.current) {
         // console.log("drawio saveData: no change");
@@ -60,10 +60,10 @@ export const DrawioEditor = ({ file }: Props) => {
       prevHashRef.current = newHash;
 
       setIsSaving(true);
-      await drawioDb.updateDrawio(fileId, data);
+      await fileDb.update(fileId, { data: { xml: data } });
       setIsSaving(false);
     },
-    [drawioDb, isReading, setIsSaving],
+    [fileDb, isReading, setIsSaving],
   );
 
   useEffect(() => {

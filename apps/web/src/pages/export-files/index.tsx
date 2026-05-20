@@ -4,16 +4,12 @@ import JSZip from "jszip";
 import { FileOutput } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { CoFile } from "@/types/file";
-import { FILE_SUFFIX_MAP } from "@/types/file";
 import { Button } from "@workspace/ui/components/button";
 import { selectedItemIdsAtom } from "@/store/jotai";
-import { useBoardDb } from "@/hooks/use-board-db";
-import { useDrawioDb } from "@/hooks/use-drawio-db";
+import { useFileDb } from "@/hooks/use-file-db";
 import { useFileTreeQuery } from "@/hooks/use-file-tree-query";
-import { useMindmapDb } from "@/hooks/use-mindmap-db";
-import { useNoteDb } from "@/hooks/use-note-db";
-import { useTldrawDb } from "@/hooks/use-tldraw-db";
 import { saveFile } from "@/lib/file-system";
+import { coFileRegistry } from "@/plugins/registry";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Tooltip } from "@/components/tooltip";
 
@@ -24,11 +20,7 @@ export const ExportFiles = () => {
   const [selectedItems, setSelectedItems] = useState<CoFile[]>([]);
   const [open, setOpen] = useState(false);
 
-  const boardDb = useBoardDb();
-  const tldrawDb = useTldrawDb();
-  const noteDb = useNoteDb();
-  const mindmapDb = useMindmapDb();
-  const drawioDb = useDrawioDb();
+  const fileDb = useFileDb();
 
   useEffect(() => {
     const selected = selectedItemIds
@@ -39,32 +31,17 @@ export const ExportFiles = () => {
 
   const getData = useCallback(
     async (file: CoFile) => {
-      const { type, id } = file;
-      switch (type) {
-        case "note": {
-          const data = await noteDb?.getNote(id);
-          return JSON.stringify(data);
-        }
-        case "board": {
-          const data = await boardDb?.getBoard(id);
-          return JSON.stringify(data);
-        }
-        case "tldraw": {
-          const data = await tldrawDb?.getTldraw(id);
-          return JSON.stringify(data);
-        }
-        case "mindmap": {
-          const data = await mindmapDb?.getMind(id);
-          return JSON.stringify(data);
-        }
-        case "drawio": {
-          const data = await drawioDb?.getDrawio(id);
-          return data;
-        }
+      if (!fileDb) return "";
+      const row = await fileDb.get(file.id);
+      if (!row?.data) return "";
+      const data = row.data as Record<string, unknown>;
+      // drawio stores { xml: string }, export the raw xml
+      if ("xml" in data && typeof data.xml === "string" && Object.keys(data).length === 1) {
+        return data.xml;
       }
-      return "";
+      return JSON.stringify(data);
     },
-    [boardDb, drawioDb, mindmapDb, noteDb, tldrawDb],
+    [fileDb],
   );
 
   const onExportFile = useCallback(async () => {
@@ -72,8 +49,9 @@ export const ExportFiles = () => {
 
     for (const file of selectedItems) {
       const content = await getData(file);
+      const suffix = coFileRegistry.get(file.type)?.meta.suffix ?? "";
       const idWithoutPrefix = file.id.replace(/^file_/, "");
-      zip.file(`${file.name}_${idWithoutPrefix}${FILE_SUFFIX_MAP[file.type]}`, content as string);
+      zip.file(`${file.name}_${idWithoutPrefix}${suffix}`, content as string);
     }
 
     const blob = await zip.generateAsync({ type: "blob" });

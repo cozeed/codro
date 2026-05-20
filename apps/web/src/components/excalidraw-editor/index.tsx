@@ -17,8 +17,8 @@ import { useAtom } from "jotai";
 import { useTheme } from "next-themes";
 import type { CoFile } from "@/types/file";
 import { isSavingAtom, langCodeAtom } from "@/store/jotai";
-import { useBoardDb } from "@/hooks/use-board-db";
-import { useBoardQuery } from "@/hooks/use-board-query";
+import { useFileDb } from "@/hooks/use-file-db";
+import { useFileQuery } from "@/hooks/use-file-query";
 import { Spinner } from "@/components/spinner";
 
 interface Props {
@@ -32,8 +32,8 @@ export const ExcalidrawEditor = ({ file }: Props) => {
   const [, setIsSaving] = useAtom(isSavingAtom);
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
   const prevVersionRef = useRef(0); // Previous version hash
-  const boardDb = useBoardDb();
-  const { boardData, isReading } = useBoardQuery(file.id);
+  const fileDb = useFileDb();
+  const { fileData, isReading } = useFileQuery(file.id);
 
   const uiOptions = {
     canvasActions: {
@@ -55,9 +55,9 @@ export const ExcalidrawEditor = ({ file }: Props) => {
   };
   // Read data
   const readData = useCallback(() => {
-    if (!boardData) return;
+    if (!fileData) return;
 
-    let initialDataTemp: ExcalidrawInitialDataState = { ...boardData };
+    let initialDataTemp: ExcalidrawInitialDataState = { ...fileData };
     clearDeletedElements(initialDataTemp);
     //
     const curVersionRef = hashElementsVersion(initialDataTemp.elements ?? []);
@@ -78,13 +78,13 @@ export const ExcalidrawEditor = ({ file }: Props) => {
     };
 
     setInitialData(initialDataTemp);
-  }, [boardData, theme, clearDeletedElements]);
+  }, [fileData, theme, clearDeletedElements]);
 
   // Save data
   const saveData = useCallback(
     async (elements: ExcalidrawElement[], appState: AppState, binaryFiles: BinaryFiles, fileId: string) => {
       if (isReading) return;
-      if (!boardDb || !fileId) return;
+      if (!fileDb || !fileId) return;
       //
       const curVersionRef = hashElementsVersion(elements);
       if (curVersionRef === prevVersionRef.current) {
@@ -104,10 +104,10 @@ export const ExcalidrawEditor = ({ file }: Props) => {
         files: binaryFiles,
       };
       setIsSaving(true);
-      await boardDb.updateBoard(fileId, _data);
+      await fileDb.update(fileId, { data: _data });
       setIsSaving(false);
     },
-    [boardDb, isReading, setIsSaving],
+    [fileDb, isReading, setIsSaving],
   );
 
   const onChangeFn = useCallback(

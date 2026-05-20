@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { BLOCKNOTE_INITIAL_DATA } from "@/db/note-db";
+import { coFileRegistry } from "@/plugins/registry";
 import { BlockNoteEditor, type PartialBlock } from "@blocknote/core";
 import * as locales from "@blocknote/core/locales";
 import { BlockNoteView } from "@blocknote/shadcn";
@@ -53,7 +53,7 @@ export const NoteDiagram = ({ code = "", className }: Props) => {
 
   const editor = useMemo(() => {
     return BlockNoteEditor.create({
-      initialContent: BLOCKNOTE_INITIAL_DATA,
+      initialContent: (coFileRegistry.get("note")?.data.getInitialData() as PartialBlock[]) ?? [],
       dictionary: getLanguage(langCode),
     });
   }, [langCode]);

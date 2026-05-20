@@ -8,6 +8,11 @@ import { TooltipProvider } from "@workspace/ui/components/tooltip";
 
 import App from "./App";
 
+import "./plugins/note-plugin";
+import "./plugins/board-plugin";
+import "./plugins/tldraw-plugin";
+import "./plugins/drawio-plugin";
+import "./plugins/mindmap-plugin";
 import "./utils/api";
 import "./styles/globals.css";
 

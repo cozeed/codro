@@ -1,12 +1,8 @@
 import { DEFAULT_FILE_TREE } from "@/utils/constant";
 import { generateId } from "@/lib/utils";
-import { getBoardDb } from "@/hooks/use-board-db";
-import { getDrawioDb } from "@/hooks/use-drawio-db";
-import { getMindmapDb } from "@/hooks/use-mindmap-db";
-import { getNoteDb } from "@/hooks/use-note-db";
-import { getTldrawDb } from "@/hooks/use-tldraw-db";
+import { coFileRegistry } from "@/plugins/registry";
 
-import type { CoFile, CoFileTree, CoFileType, CoFolder } from "../types/file";
+import type { CoFile, CoFileTree, CoFolder } from "../types/file";
 import { getUniqueNameInSameTreeLevel } from "../utils/file";
 import { BaseDb } from "./base-db";
 
@@ -69,21 +65,22 @@ export class FileTreeDb extends BaseDb {
     return info;
   }
 
-  async addFile(name?: string, type: CoFileType = "note", parentId?: string, fileContent?: string): Promise<CoFile> {
+  async addFile(name?: string, type: string = "note", parentId?: string, fileContent?: string): Promise<CoFile> {
     const fileId = `file_${generateId()}`;
     const fileInfo: CoFile = { id: fileId, name: name || "", type };
 
-    if (type === "board") {
-      await getBoardDb(this.client, this.userId).addBoard(fileId, fileContent ? JSON.parse(fileContent) : undefined);
-    } else if (type === "tldraw") {
-      await getTldrawDb(this.client, this.userId).addTldraw(fileId, fileContent ? JSON.parse(fileContent) : undefined);
-    } else if (type === "drawio") {
-      await getDrawioDb(this.client, this.userId).addDrawio(fileId, fileContent || undefined);
-    } else if (type === "mindmap") {
-      await getMindmapDb(this.client, this.userId).addMind(fileId, fileContent ? JSON.parse(fileContent) : undefined);
-    } else if (type === "note") {
-      await getNoteDb(this.client, this.userId).addNote(fileId, fileContent ? JSON.parse(fileContent) : undefined);
+    const plugin = coFileRegistry.get(type);
+    if (plugin) {
+      const deserialize = plugin.data.deserialize ?? JSON.parse;
+      const data = fileContent ? deserialize(fileContent) : plugin.data.getInitialData();
+      await super.add({
+        id: fileId,
+        type,
+        data,
+        userId: this.userId,
+      });
     }
+
     await this.addFileTreeItem(fileInfo, false, parentId);
 
     return fileInfo;

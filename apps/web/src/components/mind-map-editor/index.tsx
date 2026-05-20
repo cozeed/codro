@@ -25,8 +25,8 @@ import TouchEvent from "simple-mind-map/src/plugins/TouchEvent.js";
 import Watermark from "simple-mind-map/src/plugins/Watermark.js";
 import type { CoFile } from "@/types/file";
 import { isSavingAtom } from "@/store/jotai";
-import { useMindmapDb } from "@/hooks/use-mindmap-db";
-import { useMindmapQuery } from "@/hooks/use-mindmap-query";
+import { useFileDb } from "@/hooks/use-file-db";
+import { useFileQuery } from "@/hooks/use-file-query";
 import { Spinner } from "@/components/spinner";
 
 import { MainToolbar } from "./components/main-toolbar";
@@ -76,30 +76,30 @@ const MindMapEditorContent = ({ file, isDark }: { file: CoFile; isDark: boolean 
   const prevHashRef = useRef<string>("");
   const [editor, setEditor] = useState<MindMap | null>(null);
   const [, setIsSaving] = useAtom(isSavingAtom);
-  const mindmapDb = useMindmapDb();
-  const { mindmapData, isReading } = useMindmapQuery(file.id);
+  const fileDb = useFileDb();
+  const { fileData, isReading } = useFileQuery(file.id);
   const defaultInsertSecondLevelNodeText = t("operation.mindBranchTopic");
   const defaultInsertBelowSecondLevelNodeText = t("operation.mindSubTopic");
   const defaultGeneralizationText = t("operation.mindSummary");
 
   // Read data
   const readData = useCallback(() => {
-    if (!mindmapData) return;
-    const newHash = hash(mindmapData);
+    if (!fileData) return;
+    const newHash = hash(fileData);
     if (newHash === prevHashRef.current) {
       // console.log("mindmap readData: no change, skip loadSnapshot");
       return;
     }
     prevHashRef.current = newHash;
 
-    setInitialData(mindmapData);
-  }, [mindmapData]);
+    setInitialData(fileData);
+  }, [fileData]);
 
   // Save data
   const saveData = useCallback(
     async (editor: MindMap | null, fileId: string) => {
       if (isReading) return;
-      if (!mindmapDb || !editor || !fileId) return;
+      if (!fileDb || !editor || !fileId) return;
 
       const originData = {
         ...editor.getData(true),
@@ -111,10 +111,10 @@ const MindMapEditorContent = ({ file, isDark }: { file: CoFile; isDark: boolean 
       }
       prevHashRef.current = newHash;
       setIsSaving(true);
-      await mindmapDb.updateMind(fileId, originData);
+      await fileDb.update(fileId, { data: originData });
       setIsSaving(false);
     },
-    [mindmapDb, isReading, setIsSaving],
+    [fileDb, isReading, setIsSaving],
   );
 
   const onChangeFn = useCallback(async () => {
