@@ -39,11 +39,11 @@
     "@neondatabase/serverless": "^1.1.0",
     "drizzle-orm": "^0.45.2",
     "drizzle-valibot": "^0.4.2",
-    "pg": "^8.20.0",
+    "pg": "^8.21.0",
     "valibot": "^1.4.0"
   },
   "devDependencies": {
-    "@types/node": "^25.8.0",
+    "@types/node": "^25.9.1",
     "@types/pg": "^8.20.0",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
