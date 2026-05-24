@@ -2,6 +2,8 @@ packages:
   - apps/*
   - packages/*
   - tools/*
+overrides:
+  tldraw: 3.15.5
 allowBuilds:
   core-js: true
   esbuild: true
