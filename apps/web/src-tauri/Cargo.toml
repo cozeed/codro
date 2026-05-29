@@ -16,19 +16,19 @@ name = "tauri_app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.5.6", features = [] }
+tauri-build = { version = "2.6.2", features = [] }
 
 [dependencies]
-tauri = { version = "2.10.3", features = ["devtools"] }
+tauri = { version = "2.11.2", features = ["devtools"] }
 tauri-plugin-shell = "2.3.5"
 tauri-plugin-os = "2.3.2"
-tauri-plugin-fs = "2.5.0"
+tauri-plugin-fs = "2.5.1"
 tauri-plugin-cli = "2.4.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tauri-plugin-dialog = "2.7.0"
+tauri-plugin-dialog = "2.7.1"
 tauri-plugin-clipboard-manager = "2.3.2"
-tauri-plugin-updater = "2.7.0"
+tauri-plugin-updater = "2.10.1"
 tauri-plugin-process = "2.3.1"
 rfd = { version = "0.16", default-features = false }
 
