@@ -10,7 +10,7 @@ FROM base AS builder-base
 
 ENV TURBO_TELEMETRY_DISABLED=1
 ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+ENV PATH="$PNPM_HOME/bin:$PATH"
 ENV CI=1
 
 RUN corepack enable pnpm
