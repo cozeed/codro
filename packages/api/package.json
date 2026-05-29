@@ -29,11 +29,11 @@
     "@workspace/auth": "workspace:*",
     "@workspace/db": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "es-toolkit": "^1.46.1",
+    "es-toolkit": "^1.47.0",
     "nanoid": "^5.1.11",
     "superjson": "^2.2.6",
     "url-join": "^5.0.0",
-    "valibot": "^1.4.0"
+    "valibot": "^1.4.1"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

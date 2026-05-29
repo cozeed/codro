@@ -22,11 +22,11 @@
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
-    "turbo": "^2.9.14",
+    "turbo": "^2.9.15",
     "typescript": "6.0.3"
   },
-  "packageManager": "pnpm@11.2.2",
-"engines": {
+  "packageManager": "pnpm@11.4.0",
+  "engines": {
     "node": ">=24"
   }
 }
