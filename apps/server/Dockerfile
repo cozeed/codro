@@ -10,7 +10,7 @@ FROM base AS builder-base
 
 ENV TURBO_TELEMETRY_DISABLED=1
 ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME/bin:$PATH"
+ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=1
 
 RUN corepack enable pnpm
@@ -19,19 +19,18 @@ RUN corepack enable pnpm
 
 FROM builder-base AS builder
 
-RUN pnpm install --global turbo@^2
-
 COPY . .
 
 # https://turbo.build/repo/docs/guides/tools/docker#the-solution
-RUN turbo prune server --docker
+RUN pnpm dlx turbo prune server --docker
 
 # =========================================================================== #
 
 FROM builder-base AS installer
 
 COPY --from=builder /app/out/json/ .
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 COPY --from=builder /app/out/full/ .
 RUN pnpm --filter=server build
@@ -41,7 +40,7 @@ RUN pnpm --filter=server build
 FROM base AS production
 
 RUN addgroup --system --gid 1001 nodejs \
-    && adduser --system --uid 1001 hono
+    && adduser --system --uid 1001 --ingroup nodejs hono
 
 RUN mkdir -p /app/uploads \
     && chown -R hono:nodejs /app/uploads

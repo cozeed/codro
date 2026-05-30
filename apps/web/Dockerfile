@@ -5,7 +5,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV TURBO_TELEMETRY_DISABLED=1
 ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME/bin:$PATH"
+ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=1
 
 RUN corepack enable pnpm
@@ -14,12 +14,9 @@ RUN corepack enable pnpm
 
 FROM base AS builder
 
-RUN pnpm install --global turbo@^2
-
 COPY . .
 
-# https://turbo.build/repo/docs/guides/tools/docker#the-solution
-RUN turbo prune web --docker
+RUN pnpm dlx turbo prune web --docker
 
 # =========================================================================== #
 
@@ -38,7 +35,8 @@ ARG PUBLIC_ASSISTANT_BASE_URL
 ENV PUBLIC_ASSISTANT_BASE_URL=${PUBLIC_ASSISTANT_BASE_URL}
 
 COPY --from=builder /app/out/json/ .
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 COPY --from=builder /app/out/full/ .
 RUN pnpm build
