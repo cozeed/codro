@@ -1,3 +1,6 @@
+// Polyfill process for browser worker context (pglite Emscripten runtime references process.argv etc.)
+globalThis.process ??= /** @type {any} */ ({ env: {}, argv: [], versions: {} });
+
 import { PGlite } from "@electric-sql/pglite";
 import { live } from "@electric-sql/pglite/live";
 import { worker } from "@electric-sql/pglite/worker";
